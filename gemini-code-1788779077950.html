@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サイバールーレットシステム - Kaminari Update Deluxe</title>
+    <style>
+        /* サイバーパンク風の全体スタイル & アニメーション背景 */
+        :root {
+            --primary-cyan: #00ffff;
+            --primary-pink: #ff00ff;
+            --primary-yellow: #ffd700;
+            --primary-green: #00ff66;
+            --bg-dark: #030712;
+            --panel-bg: rgba(6, 18, 36, 0.85);
+            --border-glow: rgba(0, 255, 255, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, 'Hiragino Kaku Gothic ProN', 'Meiryo', monospace;
+            background-color: var(--bg-dark);
+            color: var(--primary-cyan);
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+            height: 100vh;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.08) 0%, transparent 60%),
+                linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            position: relative;
+        }
+
+        /* スキャンラインエフェクト */
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* 左上メニューボタン */
+        #menu-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 60;
+            background: rgba(0, 20, 40, 0.85);
+            color: var(--primary-cyan);
+            border: 1px solid var(--primary-cyan);
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.4), inset 0 0 8px rgba(0, 255, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        #menu-btn:hover {
+            background: rgba(0, 255, 255, 0.25);
+            box-shadow: 0 0 20px var(--primary-cyan), inset 0 0 12px var(--primary-cyan);
+            transform: translateY(-2px) scale(1.02);
+            text-shadow: 0 0 8px var(--primary-cyan);
+        }
+        #menu-btn:active {
+            transform: translateY(1px) scale(0.96);
+        }
+
+        /* 画面左真ん中 インデックスボタン */
+        #index-btn {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            z-index: 60;
+            background: rgba(0, 40, 20, 0.85);
+            color: var(--primary-green);
+            border: 1px solid var(--primary-green);
+            padding: 25px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(0, 255, 102, 0.4), inset 0 0 8px rgba(0, 255, 102, 0.2);
+            text-transform: uppercase;
+            writing-mode: vertical-rl;
+            letter-spacing: 4px;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            clip-path: polygon(100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px), 0 0, calc(100% - 10px) 0);
+        }
+        #index-btn:hover {
+            background: rgba(0, 255, 102, 0.25);
+            box-shadow: 0 0 20px var(--primary-green), inset 0 0 12px var(--primary-green);
+            transform: translateY(-50%) scale(1.05);
+            text-shadow: 0 0 8px var(--primary-green);
+        }
+        #index-btn:active {
+            transform: translateY(-50%) scale(0.96);
+        }
+
+        /* 右上のステータスパネル */
+        .stats-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--panel-bg);
+            border: 1px solid var(--primary-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3), inset 0 0 15px rgba(0, 255, 255, 0.15);
+            padding: 15px 25px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: left;
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+        }
+        .stat-item {
+            margin-bottom: 6px;
+            font-size: 1.05em;
+            letter-spacing: 1.2px;
+        }
+        .stat-item span {
+            color: #fff;
+            text-shadow: 0 0 8px var(--primary-cyan);
+        }
+        #coin-count {
+            color: var(--primary-yellow);
+            text-shadow: 0 0 8px var(--primary-yellow);
+        }
+
+        /* ルーレット本体のコンテナ (サイズ拡大) */
+        .roulette-wrapper {
+            position: relative;
+            width: 450px;
+            height: 450px;
+            margin: 60px auto 30px;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.2));
+        }
+
+        /* ターゲットポインター（上部の矢印） */
+        .pointer {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid var(--primary-pink);
+            z-index: 10;
+            filter: drop-shadow(0 0 12px var(--primary-pink));
+            animation: pointerPulse 1.5s infinite alternate ease-in-out;
+        }
+        @keyframes pointerPulse {
+            0% { transform: translateX(-50%) scale(1); }
+            100% { transform: translateX(-50%) scale(1.15); }
+        }
+
+        /* 回転するホイール */
+        .wheel {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid var(--primary-cyan);
+            box-shadow: 0 0 25px var(--primary-cyan), inset 0 0 35px var(--primary-cyan);
+            background: conic-gradient(
+                #0a192f 0deg 45deg,
+                #00bfff 45deg 90deg,  /* TICKET AREA */
+                #0a192f 90deg 135deg,
+                #ff00ff 135deg 180deg, /* SPECIAL AREA */
+                #051024 180deg 360deg
+            );
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1);
+            transform: rotate(0deg);
+        }
+
+        /* ルーレット盤面の文字 (サイズ調整) */
+        .wheel-label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: #fff;
+            text-shadow: 1px 1px 3px #000, 0 0 8px #000, 0 0 10px var(--primary-cyan);
+            pointer-events: none;
+        }
+        .wheel-label span {
+            display: inline-block;
+            margin-top: 45px;
+        }
+        .kaminari-label {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 15px !important;
+            font-size: 13px;
+            line-height: 1.1;
+        }
+        .kaminari-label img {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 2px;
+            filter: drop-shadow(0 0 8px var(--primary-pink));
+            object-fit: contain;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 変異パーティクルエフェクト - ユーザーの要望により画像を非表示 */
+        #mutation-display-container img {
+            display: none !important;
+        }
+        .mutation-thunder::after, .mutation-water::after {
+            display: none !important;
+        }
+
+        /* 中央の装飾 (サイズ調整) */
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: var(--bg-dark);
+            border: 2px solid var(--primary-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--primary-cyan), inset 0 0 10px var(--primary-cyan);
+            z-index: 5;
+        }
+
+        /* システムメッセージ（結果表示） */
+        #roulette-result {
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            height: 35px;
+            font-weight: bold;
+            text-shadow: 0 0 8px currentColor;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 高クオリティコントロールボタン */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        button {
+            position: relative;
+            background: rgba(0, 255, 255, 0.1);
+            color: var(--primary-cyan);
+            border: 1px solid var(--primary-cyan);
+            padding: 14px 28px;
+            font-size: 1.1em;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.25) inset, 0 0 8px rgba(0, 255, 255, 0.15);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            overflow: hidden;
+        }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        button:hover:not(:disabled)::before {
+            left: 100%;
+        }
+        button:hover:not(:disabled) {
+            background: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px var(--primary-cyan), inset 0 0 10px var(--primary-cyan);
+            text-shadow: 0 0 8px var(--primary-cyan);
+            transform: translateY(-2px) scale(1.03);
+        }
+        button:active:not(:disabled) {
+            transform: translateY(1px) scale(0.97);
+            box-shadow: 0 0 10px var(--primary-cyan);
+        }
+        button:disabled {
+            border-color: #334155;
+            color: #475569;
+            background: rgba(15, 23, 42, 0.6);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #fast-spin-btn {
+            border-color: var(--primary-yellow);
+            color: var(--primary-yellow);
+        }
+        #fast-spin-btn:hover:not(:disabled) {
+            background: rgba(255, 204, 0, 0.3);
+            box-shadow: 0 0 20px var(--primary-yellow);
+            text-shadow: 0 0 8px var(--primary-yellow);
+        }
+
+        /* タイマー表示 */
+        #cooldown-timer {
+            margin-top: 15px;
+            font-size: 1.1em;
+            color: #94a3b8;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* メニューモーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(4, 13, 26, 0.95);
+            border: 2px solid var(--primary-cyan);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.1);
+            padding: 30px;
+            z-index: 100;
+            border-radius: 8px;
+            min-width: 440px;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            animation: modalFadeIn 0.25s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translate(-50%, -46%) scale(0.95); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        .modal h2, .modal p {
+            margin-top: 0;
+            color: #fff;
+            text-shadow: 0 0 8px var(--primary-cyan);
+        }
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            cursor: pointer;
+            font-size: 1.8em;
+            color: var(--primary-pink);
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .close-btn:hover {
+            transform: scale(1.2) rotate(90deg);
+            text-shadow: 0 0 10px var(--primary-pink);
+        }
+        
+        .prob-table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+            color: var(--primary-cyan);
+        }
+        .prob-table th, .prob-table td {
+            border: 1px solid var(--primary-cyan);
+            padding: 10px;
+            text-align: center;
+        }
+
+        /* 近未来風 管理者パネル */
+        #admin-panel {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 120px;
+            width: 420px;
+            background: rgba(5, 15, 30, 0.96);
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.6);
+            z-index: 999;
+            border-radius: 8px;
+            color: #fff;
+            text-align: left;
+            user-select: none;
+            backdrop-filter: blur(10px);
+        }
+        #admin-header {
+            background: linear-gradient(90deg, #00ffcc, #0088ff);
+            color: #000;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: center;
+            cursor: move;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+        
+        /* 管理者パネル タブUI */
+        .admin-tabs {
+            display: flex;
+            border-bottom: 1px solid #00ffcc;
+        }
+        .admin-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            background: rgba(0, 255, 204, 0.1);
+            color: #00ffcc;
+            font-size: 0.9em;
+            font-weight: bold;
+            border-right: 1px solid #00ffcc;
+            transition: background 0.2s;
+        }
+        .admin-tab:last-child {
+            border-right: none;
+        }
+        .admin-tab.active {
+            background: #00ffcc;
+            color: #000;
+        }
+        .admin-tab-content {
+            display: none;
+            padding: 20px;
+            max-height: 450px;
+            overflow-y: auto;
+        }
+        .admin-tab-content.active {
+            display: block;
+        }
+
+        .close-admin {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer;
+            color: #000;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        .admin-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .admin-row input, .admin-row select {
+            background: #000;
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+            padding: 6px;
+            margin-right: 5px;
+            border-radius: 3px;
+        }
+        .admin-row button {
+            background: rgba(0, 255, 204, 0.15);
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+            padding: 6px 12px;
+            font-size: 0.85em;
+            margin: 0;
+            box-shadow: none;
+        }
+        .admin-row button:hover {
+            background: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 10px #00ffcc;
+        }
+
+        /* 右下・左下の特殊状態表示コンテナ */
+        .status-display-container {
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            background: rgba(0, 20, 40, 0.8);
+            padding: 8px 18px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            display: none;
+        }
+        
+        #luck-display-container { right: 20px; bottom: 20px; }
+        
+        #mutation-display-container { 
+            right: 20px; 
+            bottom: 95px; 
+            left: auto; 
+            flex-direction: column; 
+            align-items: flex-start; 
+            gap: 8px; 
+        }
+
+        .status-display-container img {
+            width: 48px;
+            height: 48px;
+            margin-right: 10px;
+            object-fit: contain;
+        }
+        .status-text {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 0 0 10px currentColor, 0 0 5px #000;
+        }
+
+        /* 基地のアイテム表示用 (サイズ拡大) */
+        .base-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 15px;
+            max-height: 250px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.6);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        .base-item-wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 10px;
+        }
+        .base-item {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px #ffd700);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.85; }
+            50% { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 15px var(--primary-pink)); }
+            100% { transform: scale(1); opacity: 0.85; }
+        }
+
+        /* 設定画面要素 */
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 18px 0;
+            padding: 10px 15px;
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 6px;
+        }
+        .settings-row select, .settings-row input {
+            background: #000;
+            color: var(--primary-cyan);
+            border: 1px solid var(--primary-cyan);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="menu-btn" onclick="openMenu()">MENU</button>
+    <button id="index-btn" onclick="showIndexMenu()">INDEX</button>
+
+    <!-- 効果音（標準ファイル + 自動ハイテク合成Web Audio API） -->
+    <audio id="kaminari-audio" src="kaminari.mp3" preload="auto"></audio>
+    <audio id="spin-sound" src="spin.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="win.mp3" preload="auto"></audio>
+
+    <!-- 右下のラック表示 (時間追加対応) -->
+    <div id="luck-display-container" class="status-display-container">
+        <img src="pixelart_x16-Photoroom (1).png" alt="Clover" style="filter: drop-shadow(0 0 8px #0f0);">
+        <div id="luck-text" class="status-text" style="color:#0f0; text-align:left; line-height:1.1;">
+            x<span id="luck-multiplier-val">1</span><br>
+            <span id="luck-time-val" style="font-size: 0.6em; color: #fff; text-shadow: none;"></span>
+        </div>
+    </div>
+
+    <!-- 右下の変異表示 -->
+    <div id="mutation-display-container" class="status-display-container">
+        <!-- 動的に複数生成されます -->
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-item"><span id="lbl-lose-count">外れ回数</span>: <span id="lose-count">0</span></div>
+        <div class="stat-item"><span id="lbl-coin-count">コイン</span>: <span id="coin-count">0</span></div>
+        <div class="stat-item"><span id="lbl-ticket-count">ルーレット券</span>: <span id="retry-ticket-count">0</span></div>
+        <div class="stat-item" style="display:none;">Characters: <span id="special-ticket-count">0</span></div> 
+    </div>
+
+    <div class="roulette-wrapper">
+        <div class="pointer"></div>
+        <div class="wheel" id="wheel">
+            <div class="wheel-label" style="transform: rotate(22.5deg)"><span class="txt-lose">外れ</span></div>
+            <div class="wheel-label" style="transform: rotate(67.5deg)"><span class="txt-ticket" style="color:#00bfff;">ルーレット券</span></div>
+            <div class="wheel-label" style="transform: rotate(112.5deg)"><span class="txt-lose">外れ</span></div>
+            <div class="wheel-label" style="transform: rotate(157.5deg)">
+                <span class="kaminari-label" id="kaminari-icon" style="color:#ff00ff;">
+                    <img src="ゲーム-Photoroom.png" alt="Characters">
+                    Character<br>Gacha
+                </span>
+            </div>
+            <div class="wheel-label" style="transform: rotate(270deg)"><span class="txt-lose">外れ</span></div>
+        </div>
+        <div class="wheel-center"></div>
+    </div>
+
+    <div id="roulette-result" style="color: #0ff;">[ システム準備完了 ]</div>
+
+    <div class="controls">
+        <button id="spin-btn">回す</button>
+        <button id="use-ticket-btn" disabled>券を使う</button>
+        <button id="prob-btn" onclick="showProbability()">確率を見る</button>
+        <button id="fast-spin-btn" onclick="toggleFastSpin()">高速スピン: OFF</button>
+    </div>
+    
+    <div id="cooldown-timer"></div>
+
+    <div id="main-modal" class="modal">
+        <div class="close-btn" onclick="closeModal()">×</div>
+        <div id="modal-body"></div>
+    </div>
+
+    <!-- 管理者パネル -->
+    <div id="admin-panel">
+        <div id="admin-header">
+            [SYS_ADMIN] パネル
+            <span class="close-admin" onclick="closeAdmin()">×</span>
+        </div>
+        <div class="admin-tabs">
+            <div class="admin-tab active" onclick="switchAdminTab('tab-prob', event)">確率操作＆付与</div>
+            <div class="admin-tab" onclick="switchAdminTab('tab-luck', event)">ラック変異</div>
+        </div>
+        
+        <!-- タブ1: 確率操作＆付与 -->
+        <div id="tab-prob" class="admin-tab-content active">
+            <div class="admin-row">
+                <span>コイン追加</span>
+                <div>
+                    <input type="number" id="admin-add-coin" value="10" style="width:60px;">
+                    <button onclick="addAdminItem('coin')">付与</button>
+                </div>
+            </div>
+            <div class="admin-row">
+                <span>ルーレット券追加</span>
+                <div>
+                    <input type="number" id="admin-add-retry" value="1" style="width:60px;">
+                    <button onclick="addAdminItem('retry')">付与</button>
+                </div>
+            </div>
+            <div class="admin-row">
+                <span>基地にキャラ追加</span>
+                <div>
+                    <input type="number" id="admin-add-special" value="1" style="width:60px;">
+                    <button onclick="addAdminItem('special')">付与</button>
+                </div>
+            </div>
+            <hr style="border-color: #00ffcc; margin: 15px 0; opacity: 0.5;">
+            
+            <div class="admin-row">
+                <span style="color:#ff00ff;">キャラ 確率(%)</span>
+                <div>
+                    <input type="number" id="admin-prob-special" value="1.0" step="0.1" style="width:60px;">
+                    <button onclick="updateProbabilities()">適用</button>
+                </div>
+            </div>
+            <div class="admin-row">
+                <span style="color:#00bfff;">ルーレット券 確率(%)</span>
+                <div>
+                    <input type="number" id="admin-prob-retry" value="2.5" step="0.1" style="width:60px;">
+                    <button onclick="updateProbabilities()">適用</button>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <label style="cursor: pointer; font-size: 1.1em; color: #00ffcc; font-weight: bold;">
+                    <input type="checkbox" id="admin-infinite" onchange="toggleInfinite(this.checked)"> 無限スピンモード
+                </label>
+            </div>
+        </div>
+
+        <!-- タブ2: ラック変異 -->
+        <div id="tab-luck" class="admin-tab-content">
+            <div class="admin-row">
+                <span style="color:#0f0;">ラック追加 (倍率/秒)</span>
+                <div>
+                    <input type="number" id="admin-luck-multi" value="1" step="0.1" min="1" style="width:40px;">
+                    <input type="number" id="admin-luck-time" value="60" placeholder="秒" style="width:40px;">
+                    <button onclick="updateLuck()">適用</button>
+                </div>
+            </div>
+            
+            <hr style="border-color: #00ffcc; margin: 15px 0; opacity: 0.5;">
+            
+            <div class="admin-row">
+                <span style="color:#ffcc00;">変異発動</span>
+                <div>
+                    <select id="admin-mutation-type">
+                        <option value="thunder">雷変異</option>
+                        <option value="water">ウォーター変異</option>
+                    </select>
+                    <input type="number" id="admin-mutation-time" value="60" placeholder="秒" style="width:40px;">
+                    <button onclick="activateMutation()">発動</button>
+                </div>
+            </div>
+            
+            <div class="admin-row">
+                <span style="color:#ffcc00;">変異確率(%)設定</span>
+                <div>
+                    <input type="number" id="admin-prob-mutation" value="10" step="1" style="width:60px;">
+                    <button onclick="updateMutationProb()">適用</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- キャラクターデータ＆レア度設定 ---
+        const characters = [
+            { id: "kaminari", name: "Kaminari", img: "ゲーム-Photoroom.png", rarity: "レジェンド", color: "#ff00ff" },
+            { id: "pittsa_naito", name: "Pittsa Naito", img: "ピッツァナイト-Photoroom.png", rarity: "アンコモン", color: "#a8a8a8" },
+            { id: "suta_banana", name: "Sutā Banana", img: "スターバナナ-Photoroom.png", rarity: "レア", color: "#4287f5" },
+            { id: "sanda_doragon", name: "Sandā Doragon", img: "サンダードラゴン-Photoroom.png", rarity: "サンダー", color: "#e6e600" },
+            { id: "piritama_da_ze", name: "Piritama Dā Zē", img: "ぴりたまだーぜー-Photoroom.png", rarity: "レア", color: "#4287f5" },
+            { id: "sanda_pittsa", name: "Sandā Pittsa", img: "サンダーピッツァ-Photoroom.png", rarity: "サンダー", color: "#e6e600" },
+            { id: "potepote_burazazu", name: "Potepote Burazāzu", img: "ポテポテブラザーズ-Photoroom.png", rarity: "アンコモン", color: "#a8a8a8" },
+            { id: "mane_mane_rabitto", name: "Manē Manē Rabitto", img: "マネーマネーラビット-Photoroom (1).png", rarity: "レジェンド", color: "#ff00ff" },
+            { id: "rakki_nikameni", name: "Rakkī Nikamenī", img: "ラッキーにかめにーに-Photoroom.png", rarity: "ゴット", color: "#ff4500" },
+            { id: "wota_cheri", name: "Wōta Cherī", img: "ウォータチェリー-Photoroom.png", rarity: "シークレット", color: "#ff1493" }
+        ];
+
+        // --- 設定・多言語(i18n) 辞書 ---
+        let currentLang = localStorage.getItem('appLang') || 'ja';
+        let isSoundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+
+        const i18n = {
+            ja: {
+                menuTitle: "システムメニュー",
+                shopBtn: "ショップ",
+                baseBtn: "基地",
+                settingsBtn: "設定",
+                shopTitle: "システムショップ",
+                coinsOwned: "所持コイン",
+                exchangeDesc: "コイン30枚 → ルーレット券1枚",
+                exchangeBtn: "交換する",
+                backBtn: "戻る",
+                baseTitle: "基地 - KAMINARI BASE",
+                emptyBase: "何も設置されていません",
+                sellBtn: "売る",
+                clearAllBtn: "すべて削除（一括売却）",
+                confirmClearAll: "基地のキャラクターを全て売却し、コインを獲得しますか？",
+                settingsTitle: "システム設定",
+                langLabel: "表示言語 / Language",
+                soundLabel: "効果音 (SE)",
+                soundOn: "有効 (ON)",
+                soundOff: "無効 (OFF)",
+                probTitle: "ルーレット確率一覧",
+                luckActive: "[ラックUP中]",
+                itemHeader: "景品名",
+                probHeader: "確率",
+                specialItem: "キャラクターガチャ",
+                ticketItem: "ルーレット券",
+                loseItem: "外れ (コイン5枚)",
+                spinBtn: "回す",
+                useTicketBtn: "券を使う",
+                probBtn: "確率を見る",
+                fastSpinOff: "高速スピン: OFF",
+                fastSpinOn: "高速スピン: ON",
+                lblLose: "外れ回数",
+                lblCoin: "コイン",
+                lblTicket: "ルーレット券",
+                txtLose: "外れ",
+                readyMsg: "[ システム準備完了 ]",
+                processingMsg: "[ 処理中... ]",
+                winTicketMsg: ">> 当たり！ルーレット券を獲得 <<",
+                loseMsg: "[ ハズレ : コイン5枚獲得 ]",
+                fullBaseAlert: "⚠ 警告：基地がいっぱいです！ルーレットを引く前にメニューからキャラクターを売却してください。",
+                useTicketConfirm: "ゲーム内でルーレット券を使いますか?",
+                notEnoughCoins: "コインが足りません。",
+                ticketGot: "ルーレット券を1枚獲得しました！",
+                timerReady: "システム準備完了 : 無料スピン可能です",
+                timerCooldown: "次回の無料スピンまで : {min}分 {sec}秒",
+                infiniteMode: "【管理者】無限スピンモード有効",
+                mutationThunder: "雷変異",
+                mutationWater: "ウォーター変異"
+            },
+            en: {
+                menuTitle: "SYSTEM MENU",
+                shopBtn: "SHOP",
+                baseBtn: "BASE",
+                settingsBtn: "SETTINGS",
+                shopTitle: "SYSTEM SHOP",
+                coinsOwned: "Coins Owned",
+                exchangeDesc: "30 Coins → 1 Ticket",
+                exchangeBtn: "EXCHANGE",
+                backBtn: "BACK",
+                baseTitle: "BASE - CHARACTER BASE",
+                emptyBase: "No characters placed",
+                sellBtn: "SELL",
+                clearAllBtn: "DELETE ALL (SELL ALL)",
+                confirmClearAll: "Are you sure you want to sell ALL characters for coins?",
+                settingsTitle: "SYSTEM SETTINGS",
+                langLabel: "Language / 言語",
+                soundLabel: "Sound Effects (SE)",
+                soundOn: "ON",
+                soundOff: "OFF",
+                probTitle: "ROULETTE PROBABILITIES",
+                luckActive: "[LUCK UP]",
+                itemHeader: "Item Name",
+                probHeader: "Probability",
+                specialItem: "Character Gacha",
+                ticketItem: "Roulette Ticket",
+                loseItem: "Miss (5 Coins)",
+                spinBtn: "SPIN",
+                useTicketBtn: "USE TICKET",
+                probBtn: "VIEW PROBS",
+                fastSpinOff: "FAST SPIN: OFF",
+                fastSpinOn: "FAST SPIN: ON",
+                lblLose: "Losses",
+                lblCoin: "Coins",
+                lblTicket: "Tickets",
+                txtLose: "MISS",
+                readyMsg: "[ SYSTEM READY ]",
+                processingMsg: "[ PROCESSING... ]",
+                winTicketMsg: ">> WIN! Roulette Ticket acquired! <<",
+                loseMsg: "[ MISS : Gained 5 Coins ]",
+                fullBaseAlert: "⚠ WARNING: Base is full! Please sell characters before spinning.",
+                useTicketConfirm: "Use a Roulette Ticket?",
+                notEnoughCoins: "Not enough coins.",
+                ticketGot: "Acquired 1 Roulette Ticket!",
+                timerReady: "SYSTEM READY : Free Spin Available",
+                timerCooldown: "Next Free Spin in : {min}m {sec}s",
+                infiniteMode: "[ADMIN] Infinite Spin Mode Active",
+                mutationThunder: "Thunder Mutation",
+                mutationWater: "Water Mutation"
+            }
+        };
+
+        function t(key) {
+            return (i18n[currentLang] && i18n[currentLang][key]) ? i18n[currentLang][key] : key;
+        }
+
+        // --- Web Audio API 高品質サウンドジェネレーター ---
+        class CyberAudioSynthesizer {
+            constructor() {
+                this.ctx = null;
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+            playClick() {
+                if (!isSoundEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            }
+            playSpin() {
+                if (!isSoundEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+            playWin() {
+                if (!isSoundEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const startTime = this.ctx.currentTime + idx * 0.08;
+                    gain.gain.setValueAtTime(0.2, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.3);
+                });
+            }
+            playJackpot() {
+                if (!isSoundEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const notes = [440, 554.37, 659.25, 880, 1108.73, 1318.51, 1760];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.value = freq;
+                    const startTime = this.ctx.currentTime + idx * 0.06;
+                    gain.gain.setValueAtTime(0.25, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.4);
+                });
+            }
+        }
+
+        const audioSynth = new CyberAudioSynthesizer();
+
+        // 既存データの読み込み・保持
+        const COOLDOWN_MS = 90 * 1000;
+        
+        let loseCount = parseInt(localStorage.getItem('loseCount')) || 0;
+        let coins = parseInt(localStorage.getItem('coins')) || 0;
+        let retryTickets = parseInt(localStorage.getItem('retryTickets')) || 0;
+        let specialTickets = parseInt(localStorage.getItem('specialTickets')) || 0;
+        let lastSpinTime = parseInt(localStorage.getItem('lastSpinTime')) || 0;
+        let placedKaminari = parseInt(localStorage.getItem('placedKaminari')) || 0; // Legacy counter
+        
+        let unlockedCharacters = JSON.parse(localStorage.getItem('unlockedCharacters')) || {};
+        let baseItems = JSON.parse(localStorage.getItem('baseItems')) || [];
+
+        // Legacy compatibility
+        if (placedKaminari > 0 && baseItems.length === 0) {
+            for (let i = 0; i < placedKaminari; i++) {
+                baseItems.push("kaminari");
+            }
+            unlockedCharacters["kaminari"] = true;
+        } else if (baseItems.length > 0) {
+            placedKaminari = baseItems.length;
+        }
+        
+        let baseProbSpecial = 1.0;
+        let baseProbRetry = 2.5;
+        let luckMultiplier = 1.0;
+        let mutationProb = 10.0;
+        
+        let luckEndTime = 0;
+        let activeMutations = { thunder: 0, water: 0 };
+
+        let currentRotation = 0; 
+        let isSpinning = false;  
+        let isInfiniteSpin = false; 
+        let isFastSpin = false; 
+        let isAdminUnlocked = false;
+
+        // 残り時間を計算するヘルパー関数
+        function getRemainingTimeText(endTime) {
+            if (endTime === -1 || endTime === 0) return "∞";
+            const diff = Math.max(0, endTime - Date.now());
+            const sec = Math.ceil(diff / 1000);
+            if (sec > 60) return Math.floor(sec/60) + "分" + (sec%60) + "秒";
+            return sec + "秒";
+        }
+
+        // キャラクター抽選ロジック
+        function rollCharacter() {
+            const rand = Math.random() * 100;
+            if (rand < 1) return characters.find(c => c.id === 'wota_cheri'); // 1% Secret
+            if (rand < 5) return characters.find(c => c.id === 'rakki_nikameni'); // 4% God
+            if (rand < 15) { // 10% Thunder
+                const thunders = characters.filter(c => c.rarity === 'サンダー');
+                return thunders[Math.floor(Math.random() * thunders.length)];
+            }
+            if (rand < 30) { // 15% Legend
+                const legends = characters.filter(c => c.rarity === 'レジェンド');
+                return legends[Math.floor(Math.random() * legends.length)];
+            }
+            if (rand < 60) { // 30% Rare
+                const rares = characters.filter(c => c.rarity === 'レア');
+                return rares[Math.floor(Math.random() * rares.length)];
+            }
+            // 40% Uncommon
+            const uncommons = characters.filter(c => c.rarity === 'アンコモン');
+            return uncommons[Math.floor(Math.random() * uncommons.length)];
+        }
+
+        // UI全体テキストの動的更新
+        const updateUI = () => {
+            document.getElementById('lose-count').innerText = loseCount;
+            document.getElementById('coin-count').innerText = coins; 
+            document.getElementById('retry-ticket-count').innerText = retryTickets;
+            document.getElementById('special-ticket-count').innerText = specialTickets;
+            
+            document.getElementById('lbl-lose-count').innerText = t('lblLose');
+            document.getElementById('lbl-coin-count').innerText = t('lblCoin');
+            document.getElementById('lbl-ticket-count').innerText = t('lblTicket');
+            document.getElementById('spin-btn').innerText = t('spinBtn');
+            document.getElementById('use-ticket-btn').innerText = t('useTicketBtn');
+            document.getElementById('prob-btn').innerText = t('probBtn');
+            
+            const fastBtn = document.getElementById('fast-spin-btn');
+            fastBtn.innerText = isFastSpin ? t('fastSpinOn') : t('fastSpinOff');
+
+            document.querySelectorAll('.txt-lose').forEach(el => el.innerText = t('txtLose'));
+            document.querySelectorAll('.txt-ticket').forEach(el => el.innerText = t('ticketItem'));
+
+            if (!isSpinning) {
+                document.getElementById('use-ticket-btn').disabled = retryTickets <= 0;
+            }
+        };
+
+        const saveState = () => {
+            localStorage.setItem('loseCount', loseCount);
+            localStorage.setItem('coins', coins); 
+            localStorage.setItem('retryTickets', retryTickets);
+            localStorage.setItem('specialTickets', specialTickets);
+            localStorage.setItem('lastSpinTime', lastSpinTime);
+            localStorage.setItem('placedKaminari', placedKaminari);
+            localStorage.setItem('baseItems', JSON.stringify(baseItems));
+            localStorage.setItem('unlockedCharacters', JSON.stringify(unlockedCharacters));
+            localStorage.setItem('appLang', currentLang);
+            localStorage.setItem('soundEnabled', isSoundEnabled);
+        };
+
+        function toggleFastSpin() {
+            audioSynth.playClick();
+            isFastSpin = !isFastSpin;
+            updateUI();
+            
+            const wheel = document.getElementById('wheel');
+            wheel.style.transition = isFastSpin ? 'transform 1s cubic-bezier(0.1, 0.8, 0.1, 1)' : 'transform 4s cubic-bezier(0.1, 0.8, 0.1, 1)';
+        }
+
+        const processSpin = (isFreeSpin) => {
+            if (baseItems.length >= 10) {
+                alert(t('fullBaseAlert'));
+                return;
+            }
+            if (isSpinning) return;
+            isSpinning = true;
+
+            document.getElementById('spin-btn').disabled = true;
+            document.getElementById('use-ticket-btn').disabled = true;
+            
+            const resultElement = document.getElementById('roulette-result');
+            resultElement.innerText = t('processingMsg');
+            resultElement.style.color = "#0ff";
+
+            // 音声再生
+            audioSynth.playSpin();
+            if (isSoundEnabled) {
+                const spinSound = document.getElementById('spin-sound');
+                spinSound.currentTime = 0;
+                spinSound.play().catch(() => {});
+            }
+
+            const rand = Math.random() * 100;
+            let targetAngle = 0;
+            let resultType = "";
+
+            let finalProbSpecial = baseProbSpecial * luckMultiplier;
+            let finalProbRetry = baseProbRetry * luckMultiplier;
+
+            if (rand < finalProbSpecial) {
+                targetAngle = 360 - (135 + 22.5);
+                resultType = "special";
+            } else if (rand < (finalProbSpecial + finalProbRetry)) {
+                targetAngle = 360 - (45 + 22.5);
+                resultType = "retry";
+            } else {
+                targetAngle = 360 - 270;
+                resultType = "lose";
+            }
+
+            const randomOffset = (Math.random() * 30) - 15;
+            targetAngle += randomOffset;
+
+            const currentDeg = currentRotation % 360;
+            let extraRotation = targetAngle - currentDeg;
+            if (extraRotation < 0) extraRotation += 360;
+            
+            currentRotation += (1800 + extraRotation);
+            document.getElementById('wheel').style.transform = `rotate(${currentRotation}deg)`;
+
+            const spinDuration = isFastSpin ? 1000 : 4000;
+
+            setTimeout(() => {
+                if (resultType === "special") {
+                    const rolledChar = rollCharacter();
+                    baseItems.push(rolledChar.id);
+                    placedKaminari = baseItems.length;
+                    unlockedCharacters[rolledChar.id] = true;
+                    
+                    resultElement.innerText = `>> 大当たり！ ${rolledChar.name} を獲得！ <<`;
+                    resultElement.style.color = rolledChar.color || "#ff00ff";
+                    
+                    audioSynth.playJackpot();
+                    if (isSoundEnabled) {
+                        const audio = document.getElementById('kaminari-audio');
+                        audio.currentTime = 0;
+                        audio.play().catch(() => {});
+                    }
+
+                } else if (resultType === "retry") {
+                    retryTickets++;
+                    resultElement.innerText = t('winTicketMsg');
+                    resultElement.style.color = "#00bfff";
+                    
+                    audioSynth.playWin();
+                    if (isSoundEnabled) {
+                        const winSound = document.getElementById('win-sound');
+                        winSound.currentTime = 0;
+                        winSound.play().catch(() => {});
+                    }
+
+                } else {
+                    loseCount++;
+                    coins += 5; 
+                    resultElement.innerText = t('loseMsg');
+                    resultElement.style.color = "#ff4444";
+                }
+
+                if (isFreeSpin) {
+                    lastSpinTime = Date.now();
+                }
+
+                saveState();
+                isSpinning = false;
+                updateUI();
+                updateCooldownUI();
+            }, spinDuration);
+        };
+
+        const handleNormalSpin = () => {
+            audioSynth.playClick();
+            const now = Date.now();
+            if (!isInfiniteSpin && now - lastSpinTime < COOLDOWN_MS) return;
+            processSpin(true);
+        };
+
+        const handleTicketSpin = () => {
+            audioSynth.playClick();
+            if (retryTickets > 0 && !isSpinning) {
+                const isUse = confirm(t('useTicketConfirm'));
+                if (isUse) {
+                    retryTickets--;
+                    saveState();
+                    updateUI();
+                    processSpin(false);
+                }
+            }
+        };
+
+        const updateCooldownUI = () => {
+            if (isSpinning) return;
+
+            const spinBtn = document.getElementById('spin-btn');
+            const timerDisplay = document.getElementById('cooldown-timer');
+
+            if (isInfiniteSpin) {
+                spinBtn.disabled = false;
+                timerDisplay.innerText = t('infiniteMode');
+                timerDisplay.style.color = "#00ffcc";
+                return;
+            }
+
+            const now = Date.now();
+            const timeDiff = now - lastSpinTime;
+
+            if (timeDiff >= COOLDOWN_MS) {
+                spinBtn.disabled = false;
+                timerDisplay.innerText = t('timerReady');
+                timerDisplay.style.color = "#00ff00";
+            } else {
+                spinBtn.disabled = true;
+                const remainingTime = COOLDOWN_MS - timeDiff;
+                const minutes = Math.floor(remainingTime / (1000 * 60));
+                const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+                
+                timerDisplay.innerText = t('timerCooldown').replace('{min}', minutes).replace('{sec}', seconds);
+                timerDisplay.style.color = "#888";
+            }
+        };
+
+        // 状態異常・ラック・変異の複数監視
+        const updateStatusEffects = () => {
+            const now = Date.now();
+            const kaminariIcon = document.getElementById('kaminari-icon');
+            
+            // ラックチェック
+            const luckUI = document.getElementById('luck-display-container');
+            if (luckMultiplier > 1.0) {
+                if (luckEndTime > 0 && now > luckEndTime) {
+                    luckMultiplier = 1.0;
+                    luckEndTime = 0;
+                    luckUI.style.display = 'none';
+                } else {
+                    document.getElementById('luck-multiplier-val').innerText = luckMultiplier.toFixed(1);
+                    document.getElementById('luck-time-val').innerText = "残り: " + getRemainingTimeText(luckEndTime);
+                    luckUI.style.display = 'flex';
+                }
+            } else {
+                luckUI.style.display = 'none';
+            }
+
+            // 変異チェック（複数発動対応）
+            const mutUI = document.getElementById('mutation-display-container');
+            let mutHtml = '';
+            let isMutActive = false;
+
+            // 雷変異チェック
+            if (activeMutations.thunder !== 0) {
+                if (activeMutations.thunder > 0 && now > activeMutations.thunder) {
+                    activeMutations.thunder = 0;
+                    kaminariIcon.classList.remove('mutation-thunder');
+                } else {
+                    let thunderTimeStr = getRemainingTimeText(activeMutations.thunder);
+                    mutHtml += `<div style="display:flex; align-items:center;"><img src="pixelart_x16-Photoroom (3).png" alt="Thunder" style="width:40px;height:40px;margin-right:10px;filter:drop-shadow(0 0 8px #ffd700);object-fit:contain;"><div class="status-text" style="color:#ffd700;font-size:1.1em;line-height:1.1;">${t('mutationThunder')}<br><span style="font-size:0.6em;color:#fff;text-shadow:none;">残り: ${thunderTimeStr}</span></div></div>`;
+                    kaminariIcon.classList.add('mutation-thunder');
+                    isMutActive = true;
+                }
+            } else {
+                kaminariIcon.classList.remove('mutation-thunder');
+            }
+
+            // ウォーター変異チェック
+            if (activeMutations.water !== 0) {
+                if (activeMutations.water > 0 && now > activeMutations.water) {
+                    activeMutations.water = 0;
+                    kaminariIcon.classList.remove('mutation-water');
+                } else {
+                    let waterTimeStr = getRemainingTimeText(activeMutations.water);
+                    mutHtml += `<div style="display:flex; align-items:center;"><img src="pixelart_x16-Photoroom (2)_3.jpg" alt="Water" style="width:40px;height:40px;margin-right:10px;filter:drop-shadow(0 0 8px #00bfff);object-fit:contain;"><div class="status-text" style="color:#00bfff;font-size:1.1em;line-height:1.1;">${t('mutationWater')}<br><span style="font-size:0.6em;color:#fff;text-shadow:none;">残り: ${waterTimeStr}</span></div></div>`;
+                    kaminariIcon.classList.add('mutation-water');
+                    isMutActive = true;
+                }
+            } else {
+                kaminariIcon.classList.remove('mutation-water');
+            }
+
+            // UIへの反映
+            if (isMutActive) {
+                mutUI.innerHTML = mutHtml;
+                mutUI.style.display = 'flex';
+            } else {
+                mutUI.style.display = 'none';
+                mutUI.innerHTML = '';
+            }
+        };
+
+        document.getElementById('spin-btn').addEventListener('click', handleNormalSpin);
+        document.getElementById('use-ticket-btn').addEventListener('click', handleTicketSpin);
+
+        updateUI();
+        updateCooldownUI();
+        updateStatusEffects();
+        setInterval(updateCooldownUI, 1000);
+        setInterval(updateStatusEffects, 1000);
+
+        const modal = document.getElementById('main-modal');
+        const modalBody = document.getElementById('modal-body');
+
+        let secretBuffer = "";
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'select') return;
+
+            if (e.key.toLowerCase() === 'm') {
+                if (modal.style.display === 'block') {
+                    closeModal();
+                } else {
+                    openMenu();
+                }
+            }
+
+            if (isAdminUnlocked && e.key.toLowerCase() === 'k') {
+                const adminPanel = document.getElementById('admin-panel');
+                adminPanel.style.display = adminPanel.style.display === 'block' ? 'none' : 'block';
+            }
+
+            secretBuffer += e.key;
+            if (secretBuffer.length > 10) {
+                secretBuffer = secretBuffer.slice(-10);
+            }
+            if (secretBuffer.includes("140923")) {
+                isAdminUnlocked = true;
+                document.getElementById('admin-panel').style.display = 'block';
+                secretBuffer = ""; 
+            }
+        });
+
+        function closeModal() {
+            audioSynth.playClick();
+            modal.style.display = 'none';
+        }
+
+        // 新規追加：インデックス画面の表示機能（キャラクター一覧表示）
+        function showIndexMenu() {
+            audioSynth.playClick();
+            modal.style.display = 'block';
+            
+            let gridHtml = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:15px; max-height:450px; overflow-y:auto; padding:10px;">';
+
+            characters.forEach(c => {
+                const isUnlocked = unlockedCharacters[c.id];
+                let imgStyle = isUnlocked ? `width:90px; height:90px; filter:drop-shadow(0 0 10px ${c.color});` : "width:90px; height:90px; filter:brightness(0) opacity(0.3);";
+                let statusText = isUnlocked ? "<span style='color:#0f0; font-size:0.85em; font-weight:bold;'>[ 取得済 ]</span>" : "<span style='color:#f00; font-size:0.85em;'>[ 未取得 ]</span>";
+                let titleText = isUnlocked ? c.name : "???";
+
+                gridHtml += `
+                    <div style="background:rgba(0,0,0,0.6); padding: 12px; border: 1px solid ${isUnlocked ? c.color : '#333'}; border-radius:8px; text-align:center;">
+                        <img src="${c.img}" alt="${c.id}" style="${imgStyle} transition:all 0.5s; object-fit:contain;">
+                        <div style="color:${isUnlocked ? c.color : '#666'}; margin: 8px 0 4px; font-size:0.95em; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${titleText}</div>
+                        <div style="color:#ddd; font-size:0.8em; margin-bottom:8px; border-bottom:1px solid #444; padding-bottom:5px;">${c.rarity}</div>
+                        ${statusText}
+                    </div>
+                `;
+            });
+            gridHtml += '</div>';
+
+            modalBody.innerHTML = `
+                <h2 style="color:#00ff66; text-transform:uppercase; letter-spacing:2px; margin-bottom: 20px;">CHARACTER INDEX</h2>
+                ${gridHtml}
+                <br>
+                <button onclick="closeModal()" style="font-size:0.85em; padding:10px 20px; border-color:#00ff66; color:#00ff66;">閉じる</button>
+            `;
+        }
+
+        function showProbability() {
+            audioSynth.playClick();
+            let pSpecial = (baseProbSpecial * luckMultiplier).toFixed(2);
+            let pRetry = (baseProbRetry * luckMultiplier).toFixed(2);
+            let pLose = (100 - pSpecial - pRetry).toFixed(2);
+            if(pLose < 0) pLose = 0;
+
+            let mutationHtml = "";
+            let activeMutList = [];
+            const nowTime = Date.now();
+            if (activeMutations.thunder !== 0 && (activeMutations.thunder === -1 || activeMutations.thunder > nowTime)) {
+                activeMutList.push({name: t('mutationThunder'), color: '#ffd700'});
+            }
+            if (activeMutations.water !== 0 && (activeMutations.water === -1 || activeMutations.water > nowTime)) {
+                activeMutList.push({name: t('mutationWater'), color: '#00bfff'});
+            }
+
+            if (activeMutList.length > 0) {
+                let mutStr = activeMutList.map(m => `<h3 style="color:${m.color}; margin-top:0; margin-bottom: 10px; text-shadow: 0 0 5px ${m.color};">${m.name}</h3>`).join('');
+                mutationHtml = `
+                    <div style="margin-left: 20px; padding-left: 20px; border-left: 1px solid #0ff; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        ${mutStr}
+                        <div style="font-size: 1.2em; font-weight: bold;">変異確率</div>
+                        <div style="font-size: 1.5em; color: #fff;">${mutationProb} %</div>
+                    </div>
+                `;
+            }
+
+            modal.style.display = 'block';
+            modalBody.innerHTML = `
+                <h2>${t('probTitle')} ${luckMultiplier > 1 ? '<span style="color:#0f0;font-size:0.6em;">' + t('luckActive') + '</span>' : ''}</h2>
+                <div style="display:flex; justify-content:center; align-items: stretch; text-align:left;">
+                    <div>
+                        <table class="prob-table" style="margin-top:0;">
+                            <tr><th>${t('itemHeader')}</th><th>${t('probHeader')}</th></tr>
+                            <tr><td style="color:#ff00ff;">${t('specialItem')}</td><td>${pSpecial} %</td></tr>
+                            <tr><td style="color:#00bfff;">${t('ticketItem')}</td><td>${pRetry} %</td></tr>
+                            <tr><td style="color:#ff4444;">${t('loseItem')}</td><td>${pLose} %</td></tr>
+                        </table>
+                    </div>
+                    ${mutationHtml}
+                </div>
+            `;
+        }
+
+        function openMenu() {
+            audioSynth.playClick();
+            modal.style.display = 'block';
+            modalBody.innerHTML = `
+                <h2>${t('menuTitle')}</h2>
+                <button onclick="showShopMenu()" style="width:80%; margin-top:10px;">${t('shopBtn')}</button><br>
+                <button onclick="showBaseMenu()" style="width:80%; margin-top:12px; border-color:#ff00ff; color:#ff00ff;">${t('baseBtn')}</button><br>
+                <button onclick="showSettingsMenu()" style="width:80%; margin-top:12px; border-color:#ffd700; color:#ffd700;">${t('settingsBtn')}</button>
+            `;
+        }
+
+        function showShopMenu() {
+            audioSynth.playClick();
+            modalBody.innerHTML = `
+                <h2>${t('shopTitle')}</h2>
+                <p>${t('coinsOwned')}: <span style="color:#ffd700;">${coins}</span></p>
+                <p>${t('exchangeDesc')}</p>
+                <button onclick="buyTicket()">${t('exchangeBtn')}</button>
+                <br><br>
+                <button onclick="openMenu()" style="font-size:0.8em; padding:10px;">${t('backBtn')}</button>
+            `;
+        }
+
+        function buyTicket() {
+            audioSynth.playClick();
+            if (coins >= 30) {
+                coins -= 30;
+                retryTickets++;
+                saveState();
+                updateUI();
+                alert(t('ticketGot'));
+                showShopMenu(); 
+            } else {
+                alert(t('notEnoughCoins'));
+            }
+        }
+
+        /* 基地画面 (すべて削除機能を追加) */
+        function showBaseMenu() {
+            audioSynth.playClick();
+            let itemsHtml = "";
+            let mutationClasses = [];
+            const nowTime2 = Date.now();
+
+            if (activeMutations.thunder !== 0 && (activeMutations.thunder === -1 || activeMutations.thunder > nowTime2)) mutationClasses.push("mutation-thunder");
+            if (activeMutations.water !== 0 && (activeMutations.water === -1 || activeMutations.water > nowTime2)) mutationClasses.push("mutation-water");
+            
+            let mutationClassStr = mutationClasses.join(" ");
+
+            for(let i = 0; i < baseItems.length; i++) {
+                let charId = baseItems[i];
+                let charInfo = characters.find(c => c.id === charId) || characters[0];
+                itemsHtml += `
+                    <div class="base-item-wrapper">
+                        <span class="${mutationClassStr}" style="display:inline-block; position:relative;">
+                            <img src="${charInfo.img}" class="base-item" alt="${charInfo.name}" title="${charInfo.name}">
+                        </span>
+                        <button onclick="sellCharacter(${i})" style="position:absolute; top:-10px; right:-15px; padding:3px 6px; font-size:11px; background:#ff4444; color:#fff; border:1px solid #fff; border-radius:4px; box-shadow:0 0 5px #ff4444; cursor:pointer;">${t('sellBtn')}</button>
+                    </div>
+                `;
+            }
+
+            modalBody.innerHTML = `
+                <h2 style="color:#ff00ff;">${t('baseTitle')} ( ${baseItems.length} / 10 )</h2>
+                <div class="base-grid">
+                    ${itemsHtml || `<span style="color:#777; font-size:0.9em; align-self:center;">${t('emptyBase')}</span>`}
+                </div>
+                
+                <div style="margin-top: 15px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+                    ${baseItems.length > 0 ? `<button onclick="clearAllCharacters()" style="border-color:#ff4444; color:#ff4444; font-size:0.85em; padding:10px 15px;">${t('clearAllBtn')}</button>` : ''}
+                    <button onclick="openMenu()" style="font-size:0.85em; padding:10px 15px;">${t('backBtn')}</button>
+                </div>
+            `;
+        }
+
+        function sellCharacter(index) {
+            audioSynth.playClick();
+            if (confirm("このキャラクターを売却し、コイン50枚を獲得しますか？")) {
+                baseItems.splice(index, 1);
+                placedKaminari = baseItems.length;
+                coins += 50;
+                saveState();
+                updateUI();
+                showBaseMenu();
+            }
+        }
+
+        function clearAllCharacters() {
+            audioSynth.playClick();
+            if (baseItems.length > 0) {
+                if (confirm(t('confirmClearAll'))) {
+                    const gainedCoins = baseItems.length * 50;
+                    coins += gainedCoins;
+                    baseItems = [];
+                    placedKaminari = 0;
+                    saveState();
+                    updateUI();
+                    showBaseMenu();
+                }
+            }
+        }
+
+        function showSettingsMenu() {
+            audioSynth.playClick();
+            modalBody.innerHTML = `
+                <h2 style="color:#ffd700;">${t('settingsTitle')}</h2>
+                
+                <div class="settings-row">
+                    <span>${t('langLabel')}</span>
+                    <select id="setting-lang" onchange="changeLanguage(this.value)">
+                        <option value="ja" ${currentLang === 'ja' ? 'selected' : ''}>日本語 (Japanese)</option>
+                        <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option>
+                    </select>
+                </div>
+
+                <div class="settings-row">
+                    <span>${t('soundLabel')}</span>
+                    <select id="setting-sound" onchange="changeSoundSetting(this.value)">
+                        <option value="true" ${isSoundEnabled ? 'selected' : ''}>${t('soundOn')}</option>
+                        <option value="false" ${!isSoundEnabled ? 'selected' : ''}>${t('soundOff')}</option>
+                    </select>
+                </div>
+
+                <br>
+                <button onclick="openMenu()" style="font-size:0.85em; padding:10px 20px;">${t('backBtn')}</button>
+            `;
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            saveState();
+            updateUI();
+            showSettingsMenu();
+        }
+
+        function changeSoundSetting(val) {
+            isSoundEnabled = (val === 'true');
+            saveState();
+            showSettingsMenu();
+        }
+
+        /* --- 管理者パネル用関数 --- */
+        function switchAdminTab(tabId, e) {
+            audioSynth.playClick();
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+            
+            if(e && e.target) e.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function closeAdmin() {
+            audioSynth.playClick();
+            document.getElementById('admin-panel').style.display = 'none';
+        }
+
+        function addAdminItem(type) {
+            audioSynth.playClick();
+            if (type === 'coin') {
+                const val = parseInt(document.getElementById('admin-add-coin').value) || 0;
+                coins += val;
+            } else if (type === 'retry') {
+                const val = parseInt(document.getElementById('admin-add-retry').value) || 0;
+                retryTickets += val;
+            } else if (type === 'special') {
+                const val = parseInt(document.getElementById('admin-add-special').value) || 0;
+                for (let i = 0; i < val; i++) {
+                    baseItems.push("kaminari");
+                    unlockedCharacters["kaminari"] = true;
+                }
+                placedKaminari = baseItems.length;
+            }
+            saveState();
+            updateUI();
+            if (type === 'special') alert(`基地にキャラを強制追加しました。現在 ${baseItems.length}体`);
+        }
+
+        function updateProbabilities() {
+            audioSynth.playClick();
+            const pSpecial = parseFloat(document.getElementById('admin-prob-special').value);
+            const pRetry = parseFloat(document.getElementById('admin-prob-retry').value);
+            if (!isNaN(pSpecial)) baseProbSpecial = pSpecial;
+            if (!isNaN(pRetry)) baseProbRetry = pRetry;
+            alert(`確率を更新しました。\nキャラガチャ: ${baseProbSpecial}%\nルーレット券: ${baseProbRetry}%`);
+        }
+
+        function updateLuck() {
+            audioSynth.playClick();
+            const multi = parseFloat(document.getElementById('admin-luck-multi').value);
+            const timeSec = parseInt(document.getElementById('admin-luck-time').value);
+            if (!isNaN(multi) && multi >= 1) {
+                luckMultiplier = multi;
+                if (!isNaN(timeSec) && timeSec > 0) {
+                    luckEndTime = Date.now() + timeSec * 1000;
+                } else {
+                    luckEndTime = 0; // 0 means infinite in existing logic
+                }
+                updateStatusEffects();
+                alert(`ラック倍率 ${luckMultiplier}倍 を ${timeSec > 0 ? timeSec + '秒間' : '無期限で'} 適用しました。`);
+            }
+        }
+
+        function activateMutation() {
+            audioSynth.playClick();
+            const type = document.getElementById('admin-mutation-type').value;
+            const timeSec = parseInt(document.getElementById('admin-mutation-time').value);
+            if (type) {
+                if (!isNaN(timeSec) && timeSec > 0) {
+                    activeMutations[type] = Date.now() + timeSec * 1000;
+                } else {
+                    activeMutations[type] = -1; // 無期限
+                }
+                updateStatusEffects();
+                alert(`${type === 'thunder' ? '雷' : 'ウォーター'}変異 を ${timeSec > 0 ? timeSec + '秒間' : '無期限で'} 発動しました。`);
+            }
+        }
+
+        function updateMutationProb() {
+            audioSynth.playClick();
+            const pMutation = parseFloat(document.getElementById('admin-prob-mutation').value);
+            if (!isNaN(pMutation) && pMutation >= 0) {
+                mutationProb = pMutation;
+                alert(`変異確率を ${mutationProb}% に更新しました。`);
+            }
+        }
+
+        function toggleInfinite(checked) {
+            audioSynth.playClick();
+            isInfiniteSpin = checked;
+            updateCooldownUI();
+        }
+
+        dragElement(document.getElementById("admin-panel"));
+
+        function dragElement(elmnt) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            document.getElementById("admin-header").onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON' || e.target.className === 'close-admin' || e.target.classList.contains('admin-tab')) return;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+    </script>
+</body>
+</html>
