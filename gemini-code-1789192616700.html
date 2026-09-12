@@ -1,0 +1,1714 @@
+	<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サイバールーレットシステム - Kaminari Update Deluxe</title>
+    <style>
+        /* サイバーパンク風の全体スタイル & アニメーション背景 */
+        :root {
+            --primary-cyan: #00ffff;
+            --primary-pink: #ff00ff;
+            --primary-yellow: #ffd700;
+            --primary-green: #00ff66;
+            --bg-dark: #030712;
+            --panel-bg: rgba(6, 18, 36, 0.85);
+            --border-glow: rgba(0, 255, 255, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, 'Hiragino Kaku Gothic ProN', 'Meiryo', monospace;
+            background-color: var(--bg-dark);
+            color: var(--primary-cyan);
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+            height: 100vh;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.08) 0%, transparent 60%),
+                linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            position: relative;
+        }
+
+        /* スキャンラインエフェクト */
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* 左上メニューボタン */
+        #menu-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 60;
+            background: rgba(0, 20, 40, 0.85);
+            color: var(--primary-cyan);
+            border: 1px solid var(--primary-cyan);
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.4), inset 0 0 8px rgba(0, 255, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        #menu-btn:hover {
+            background: rgba(0, 255, 255, 0.25);
+            box-shadow: 0 0 20px var(--primary-cyan), inset 0 0 12px var(--primary-cyan);
+            transform: translateY(-2px) scale(1.02);
+            text-shadow: 0 0 8px var(--primary-cyan);
+        }
+        #menu-btn:active {
+            transform: translateY(1px) scale(0.96);
+        }
+
+        /* 画面左真ん中 インデックスボタン */
+        #index-btn {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            z-index: 60;
+            background: rgba(0, 40, 20, 0.85);
+            color: var(--primary-green);
+            border: 1px solid var(--primary-green);
+            padding: 25px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(0, 255, 102, 0.4), inset 0 0 8px rgba(0, 255, 102, 0.2);
+            text-transform: uppercase;
+            writing-mode: vertical-rl;
+            letter-spacing: 4px;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            clip-path: polygon(100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px), 0 0, calc(100% - 10px) 0);
+        }
+        #index-btn:hover {
+            background: rgba(0, 255, 102, 0.25);
+            box-shadow: 0 0 20px var(--primary-green), inset 0 0 12px var(--primary-green);
+            transform: translateY(-50%) scale(1.05);
+            text-shadow: 0 0 8px var(--primary-green);
+        }
+        #index-btn:active {
+            transform: translateY(-50%) scale(0.96);
+        }
+
+        /* 右上のステータスパネル (コイン表示削除のため非表示) */
+        .stats-container {
+            display: none;
+        }
+
+        /* 左下のお金表示 */
+        #money-display-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(6, 36, 18, 0.85);
+            border: 1px solid var(--primary-green);
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.3), inset 0 0 15px rgba(0, 255, 102, 0.15);
+            padding: 15px 25px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: left;
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            font-size: 1.5em;
+            color: var(--primary-green);
+            text-shadow: 0 0 10px var(--primary-green);
+        }
+
+        /* ルーレット本体のコンテナ (サイズ拡大) */
+        .roulette-wrapper {
+            position: relative;
+            width: 450px;
+            height: 450px;
+            margin: 60px auto 30px;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.2));
+        }
+
+        /* ターゲットポインター（上部の矢印） */
+        .pointer {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid var(--primary-pink);
+            z-index: 10;
+            filter: drop-shadow(0 0 12px var(--primary-pink));
+            animation: pointerPulse 1.5s infinite alternate ease-in-out;
+        }
+        @keyframes pointerPulse {
+            0% { transform: translateX(-50%) scale(1); }
+            100% { transform: translateX(-50%) scale(1.15); }
+        }
+
+        /* 回転するホイール */
+        .wheel {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid var(--primary-cyan);
+            box-shadow: 0 0 25px var(--primary-cyan), inset 0 0 35px var(--primary-cyan);
+            background: conic-gradient(
+                #0a192f 0deg 45deg,
+                #2b00ff 45deg 90deg,  /* ゴット確定 */
+                #0a192f 90deg 135deg,
+                #ff00ff 135deg 180deg, /* Character Gacha */
+                #051024 180deg 220deg,
+                #888800 220deg 230deg, /* サンダー確定 (極小枠) */
+                #051024 230deg 360deg
+            );
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1);
+            transform: rotate(0deg);
+        }
+
+        /* ルーレット盤面の文字 (サイズ調整) */
+        .wheel-label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: #fff;
+            text-shadow: 1px 1px 3px #000, 0 0 8px #000, 0 0 10px var(--primary-cyan);
+            pointer-events: none;
+        }
+        .wheel-label span {
+            display: inline-block;
+            margin-top: 45px;
+        }
+        .kaminari-label {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 15px !important;
+            font-size: 13px;
+            line-height: 1.1;
+        }
+        .kaminari-label img {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 2px;
+            filter: drop-shadow(0 0 8px var(--primary-pink));
+            object-fit: contain;
+            position: relative;
+            z-index: 2;
+        }
+
+        #mutation-display-container img {
+            display: none !important; /* 画像を表示しない要望に対応 */
+        }
+        .mutation-thunder::after, .mutation-water::after {
+            display: none !important;
+        }
+
+        /* 中央の装飾 (サイズ調整) */
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: var(--bg-dark);
+            border: 2px solid var(--primary-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--primary-cyan), inset 0 0 10px var(--primary-cyan);
+            z-index: 5;
+        }
+
+        /* システムメッセージ（結果表示） */
+        #roulette-result {
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            height: 35px;
+            font-weight: bold;
+            text-shadow: 0 0 8px currentColor;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 高クオリティコントロールボタン */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        button {
+            position: relative;
+            background: rgba(0, 255, 255, 0.1);
+            color: var(--primary-cyan);
+            border: 1px solid var(--primary-cyan);
+            padding: 14px 28px;
+            font-size: 1.1em;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.25) inset, 0 0 8px rgba(0, 255, 255, 0.15);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            overflow: hidden;
+        }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        button:hover:not(:disabled)::before {
+            left: 100%;
+        }
+        button:hover:not(:disabled) {
+            background: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px var(--primary-cyan), inset 0 0 10px var(--primary-cyan);
+            text-shadow: 0 0 8px var(--primary-cyan);
+            transform: translateY(-2px) scale(1.03);
+        }
+        button:active:not(:disabled) {
+            transform: translateY(1px) scale(0.97);
+            box-shadow: 0 0 10px var(--primary-cyan);
+        }
+        button:disabled {
+            border-color: #334155;
+            color: #475569;
+            background: rgba(15, 23, 42, 0.6);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #fast-spin-btn {
+            border-color: var(--primary-yellow);
+            color: var(--primary-yellow);
+        }
+        #fast-spin-btn:hover:not(:disabled) {
+            background: rgba(255, 204, 0, 0.3);
+            box-shadow: 0 0 20px var(--primary-yellow);
+            text-shadow: 0 0 8px var(--primary-yellow);
+        }
+
+        /* メニューモーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(4, 13, 26, 0.95);
+            border: 2px solid var(--primary-cyan);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.1);
+            padding: 30px;
+            z-index: 100;
+            border-radius: 8px;
+            min-width: 600px;
+            max-width: 90vw;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            animation: modalFadeIn 0.25s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translate(-50%, -46%) scale(0.95); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        .modal h2, .modal p {
+            margin-top: 0;
+            color: #fff;
+            text-shadow: 0 0 8px var(--primary-cyan);
+        }
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            cursor: pointer;
+            font-size: 1.8em;
+            color: var(--primary-pink);
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .close-btn:hover {
+            transform: scale(1.2) rotate(90deg);
+            text-shadow: 0 0 10px var(--primary-pink);
+        }
+        
+        .prob-table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+            color: var(--primary-cyan);
+        }
+        .prob-table th, .prob-table td {
+            border: 1px solid var(--primary-cyan);
+            padding: 10px;
+            text-align: center;
+        }
+
+        /* 近未来風 管理者パネル */
+        #admin-panel {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 120px;
+            width: 420px;
+            background: rgba(5, 15, 30, 0.96);
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.6);
+            z-index: 999;
+            border-radius: 8px;
+            color: #fff;
+            text-align: left;
+            user-select: none;
+            backdrop-filter: blur(10px);
+        }
+        #admin-header {
+            background: linear-gradient(90deg, #00ffcc, #0088ff);
+            color: #000;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: center;
+            cursor: move;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+        
+        /* 管理者パネル タブUI */
+        .admin-tabs {
+            display: flex;
+            border-bottom: 1px solid #00ffcc;
+        }
+        .admin-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            background: rgba(0, 255, 204, 0.1);
+            color: #00ffcc;
+            font-size: 0.9em;
+            font-weight: bold;
+            border-right: 1px solid #00ffcc;
+            transition: background 0.2s;
+        }
+        .admin-tab:last-child {
+            border-right: none;
+        }
+        .admin-tab.active {
+            background: #00ffcc;
+            color: #000;
+        }
+        .admin-tab-content {
+            display: none;
+            padding: 20px;
+            max-height: 450px;
+            overflow-y: auto;
+        }
+        .admin-tab-content.active {
+            display: block;
+        }
+
+        .close-admin {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer;
+            color: #000;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        .admin-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .admin-row input, .admin-row select {
+            background: #000;
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+            padding: 6px;
+            margin-right: 5px;
+            border-radius: 3px;
+        }
+        .admin-row button {
+            background: rgba(0, 255, 204, 0.15);
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+            padding: 6px 12px;
+            font-size: 0.85em;
+            margin: 0;
+            box-shadow: none;
+        }
+        .admin-row button:hover {
+            background: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 10px #00ffcc;
+        }
+
+        /* 右下・左下の特殊状態表示コンテナ */
+        .status-display-container {
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            background: rgba(0, 20, 40, 0.8);
+            padding: 8px 18px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            display: none;
+        }
+        
+        #luck-display-container { right: 20px; bottom: 20px; }
+        
+        /* バフ表示を右下へ変更、テキストのみを右揃えで配置 */
+        #mutation-display-container { 
+            left: auto; 
+            right: 20px;
+            bottom: 95px; 
+            flex-direction: column; 
+            align-items: flex-end; 
+            gap: 8px; 
+        }
+
+        .status-display-container img {
+            width: 48px;
+            height: 48px;
+            margin-right: 10px;
+            object-fit: contain;
+        }
+        .status-text {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 0 0 10px currentColor, 0 0 5px #000;
+        }
+
+        /* 基地のアイテム表示用 */
+        .base-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: center;
+            margin-top: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.6);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        .base-item-wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .base-item-wrapper:hover {
+            transform: scale(1.05);
+        }
+        .base-item {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px #ffd700);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.85; }
+            50% { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 15px var(--primary-pink)); }
+            100% { transform: scale(1); opacity: 0.85; }
+        }
+
+        /* 設定画面要素 */
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 18px 0;
+            padding: 10px 15px;
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 6px;
+        }
+        .settings-row select, .settings-row input {
+            background: #000;
+            color: var(--primary-cyan);
+            border: 1px solid var(--primary-cyan);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1em;
+        }
+
+        /* 変異(バフ)エフェクトクラス */
+        .filter-gold {
+            filter: drop-shadow(0 0 15px gold) sepia(1) hue-rotate(15deg) saturate(3) brightness(1.2) !important;
+        }
+        .filter-diamond {
+            filter: drop-shadow(0 0 15px cyan) hue-rotate(180deg) saturate(2) brightness(1.5) !important;
+        }
+        .filter-rainbow {
+            animation: rainbowFilter 2s linear infinite !important;
+        }
+        @keyframes rainbowFilter {
+            0% { filter: drop-shadow(0 0 15px red) hue-rotate(0deg) saturate(3); }
+            50% { filter: drop-shadow(0 0 15px lime) hue-rotate(180deg) saturate(3); }
+            100% { filter: drop-shadow(0 0 15px blue) hue-rotate(360deg) saturate(3); }
+        }
+        .filter-thunder {
+            filter: drop-shadow(0 0 20px #e6e600) hue-rotate(40deg) saturate(2) brightness(1.3) !important;
+        }
+        .filter-water {
+            filter: drop-shadow(0 0 20px #00bfff) hue-rotate(180deg) saturate(2) brightness(1.2) !important;
+        }
+
+        /* タブボタン用 */
+        .index-tabs button {
+            margin: 0 5px;
+            padding: 10px 15px;
+            font-size: 0.9em;
+        }
+    </style>
+
+    <!-- BGMオーディオ追加 -->
+    <audio id="bgm-audio" src="bgm.mp3" autoplay loop preload="auto"></audio>
+    
+</head>
+<body>
+
+    <button id="menu-btn" onclick="openMenu()">MENU</button>
+    <button id="index-btn" onclick="showIndexMenu('normal')">INDEX</button>
+
+    <!-- 効果音 -->
+    <audio id="kaminari-audio" src="kaminari.mp3" preload="auto"></audio>
+    <audio id="spin-sound" src="spin.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="win.mp3" preload="auto"></audio>
+
+    <!-- 右下のラック表示 -->
+    <div id="luck-display-container" class="status-display-container">
+        <img src="pixelart_x16-Photoroom (1).png" alt="Clover" style="filter: drop-shadow(0 0 8px #0f0);">
+        <div id="luck-text" class="status-text" style="color:#0f0; text-align:left; line-height:1.1;">
+            x<span id="luck-multiplier-val">1</span><br>
+            <span id="luck-time-val" style="font-size: 0.6em; color: #fff; text-shadow: none;"></span>
+        </div>
+    </div>
+
+    <!-- 右下のバフ表示 (雷バフ用: 文字のみ表示) -->
+    <div id="mutation-display-container" class="status-display-container">
+        <!-- 動的に複数生成されます -->
+    </div>
+
+    <!-- お金表示（左下） -->
+    <div id="money-display-container">
+        <span id="lbl-money-count">お金</span>: $<span id="money-val">0</span>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-item" style="display:none;">Characters: <span id="special-ticket-count">0</span></div> 
+    </div>
+
+    <div class="roulette-wrapper">
+        <div class="pointer"></div>
+        <div class="wheel" id="wheel">
+            <div class="wheel-label" style="transform: rotate(22.5deg)"><span style="color:#a8a8a8;">アンコモン確定</span></div>
+            <div class="wheel-label" style="transform: rotate(67.5deg)"><span style="color:#ff4500;">ゴット確定</span></div>
+            <div class="wheel-label" style="transform: rotate(112.5deg)"><span style="color:#ff00ff;">レジェンド確定</span></div>
+            <div class="wheel-label" style="transform: rotate(157.5deg)">
+                <span class="kaminari-label" id="kaminari-icon" style="color:#ff00ff;">
+                    <img src="ゲーム-Photoroom.png" alt="Characters">
+                    Character<br>Gacha
+                </span>
+            </div>
+            <div class="wheel-label" style="transform: rotate(225deg)"><span style="color:#e6e600; font-size:14px; margin-top:55px;">サンダー確定</span></div>
+            <div class="wheel-label" style="transform: rotate(270deg)"><span style="color:#a8a8a8;">アンコモン確定</span></div>
+        </div>
+        <div class="wheel-center"></div>
+    </div>
+
+    <div id="roulette-result" style="color: #0ff;">[ システム準備完了 ]</div>
+
+    <div class="controls">
+        <button id="spin-btn">回す (50$)</button>
+        <button id="prob-btn" onclick="showProbability()">確率を見る</button>
+        <button id="fast-spin-btn" onclick="toggleFastSpin()">高速スピン: OFF</button>
+    </div>
+
+    <div id="main-modal" class="modal">
+        <div class="close-btn" onclick="closeModal()">×</div>
+        <div id="modal-body"></div>
+    </div>
+
+    <!-- 管理者パネル -->
+    <div id="admin-panel">
+        <div id="admin-header">
+            [SYS_ADMIN] パネル
+            <span class="close-admin" onclick="closeAdmin()">×</span>
+        </div>
+        <div class="admin-tabs">
+            <div class="admin-tab active" onclick="switchAdminTab('tab-prob', event)">確率操作＆付与</div>
+            <div class="admin-tab" onclick="switchAdminTab('tab-luck', event)">ラック/バフ管理</div>
+        </div>
+        
+        <!-- タブ1: 確率操作＆付与 -->
+        <div id="tab-prob" class="admin-tab-content active">
+            <div class="admin-row">
+                <span>お金追加 ($)</span>
+                <div>
+                    <input type="number" id="admin-add-money" value="1000" style="width:60px;">
+                    <button onclick="addAdminItem('money')">付与</button>
+                </div>
+            </div>
+            <div class="admin-row">
+                <span>基地にキャラ追加</span>
+                <div>
+                    <button onclick="showAdminCharList()">リストを開く</button>
+                </div>
+            </div>
+            <hr style="border-color: #00ffcc; margin: 15px 0; opacity: 0.5;">
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <label style="cursor: pointer; font-size: 1.1em; color: #00ffcc; font-weight: bold;">
+                    <input type="checkbox" id="admin-infinite" onchange="toggleInfinite(this.checked)"> 無限スピンモード
+                </label>
+            </div>
+        </div>
+
+        <!-- タブ2: ラック/バフ管理 -->
+        <div id="tab-luck" class="admin-tab-content">
+            <div class="admin-row">
+                <span style="color:#0f0;">ラック追加 (倍率/秒)</span>
+                <div>
+                    <input type="number" id="admin-luck-multi" value="1" step="0.1" min="1" style="width:40px;">
+                    <input type="number" id="admin-luck-time" value="60" placeholder="秒" style="width:40px;">
+                    <button onclick="updateLuck()">適用</button>
+                </div>
+            </div>
+            
+            <hr style="border-color: #00ffcc; margin: 15px 0; opacity: 0.5;">
+            
+            <div class="admin-row">
+                <span style="color:#ffcc00;">全体バフ発動</span>
+                <div>
+                    <select id="admin-mutation-type">
+                        <option value="thunder">雷バフ</option>
+                        <option value="water">ウォーターバフ</option>
+                    </select>
+                    <input type="number" id="admin-mutation-time" value="60" placeholder="秒" style="width:40px;">
+                    <button onclick="activateMutation()">発動</button>
+                </div>
+            </div>
+            
+            <div class="admin-row">
+                <span style="color:#ffcc00;">基本バフ付与確率(%)</span>
+                <div>
+                    <input type="number" id="admin-prob-mutation" value="10" step="1" style="width:60px;">
+                    <button onclick="updateMutationProb()">適用</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- キャラクターデータ＆レア度設定 ---
+        const characters = [
+            { id: "kaminari", name: "Kaminari", img: "ゲーム-Photoroom.png", rarity: "ゴット", color: "#ff4500" },
+            { id: "pittsa_naito", name: "Pittsa Naito", img: "ピッツァナイト-Photoroom.png", rarity: "アンコモン", color: "#a8a8a8" },
+            { id: "suta_banana", name: "Sutā Banana", img: "スターバナナ-Photoroom.png", rarity: "シークレット", color: "#ff1493" },
+            { id: "sanda_doragon", name: "Sandā Doragon", img: "サンダードラゴン-Photoroom.png", rarity: "サンダー", color: "#e6e600" },
+            { id: "piritama_da_ze", name: "Piritama Dā Zē", img: "ぴりたまだーぜー-Photoroom.png", rarity: "レア", color: "#4287f5" },
+            { id: "sanda_pittsa", name: "Sandā Pittsa", img: "サンダーピッツァ-Photoroom.png", rarity: "サンダー", color: "#e6e600" },
+            { id: "potepote_burazazu", name: "Potepote Burazāzu", img: "ポテポテブラザーズ-Photoroom.png", rarity: "サンダー", color: "#e6e600" },
+            { id: "mane_mane_rabitto", name: "Manē Manē Rabitto", img: "マネーマネーラビット-Photoroom (1).png", rarity: "レジェンド", color: "#ff00ff" },
+            { id: "rakki_nikameni", name: "Rakkī Nikamenī", img: "ラッキーにかめにーに-Photoroom.png", rarity: "ゴット", color: "#ff4500" },
+            { id: "wota_cheri", name: "Wōta Cherī", img: "ウォータチェリー-Photoroom.png", rarity: "シークレット", color: "#ff1493" }
+        ];
+
+        // お金の単位フォーマット関数
+        function formatMoney(value) {
+            if (value >= 1e15) return (value / 1e15).toFixed(1).replace(/\.0$/, '') + 'Qa';
+            if (value >= 1e12) return (value / 1e12).toFixed(1).replace(/\.0$/, '') + 'T';
+            if (value >= 1e9) return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+            if (value >= 1e6) return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+            if (value >= 1e3) return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+            return value.toString();
+        }
+
+        // --- 設定・多言語(i18n) 辞書 ---
+        let currentLang = localStorage.getItem('appLang') || 'ja';
+        let isSoundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+        let isBgmEnabled = localStorage.getItem('bgmEnabled') !== 'false';
+
+        // BGM自動再生ロジック
+        document.addEventListener('click', function initBgm() {
+            if (isBgmEnabled) {
+                const bgm = document.getElementById('bgm-audio');
+                if (bgm.paused) bgm.play().catch(()=>{});
+            }
+            document.removeEventListener('click', initBgm);
+        }, {once: true});
+
+        const i18n = {
+            ja: {
+                menuTitle: "システムメニュー",
+                baseBtn: "基地",
+                settingsBtn: "設定",
+                backBtn: "戻る",
+                baseTitle: "基地 - KAMINARI BASE",
+                emptyBase: "何も設置されていません",
+                sellBtn: "売る",
+                clearAllBtn: "すべて削除（一括売却）",
+                confirmClearAll: "基地のキャラクターを全て売却し、お金を獲得しますか？",
+                settingsTitle: "システム設定",
+                langLabel: "表示言語 / Language",
+                soundLabel: "効果音 (SE)",
+                bgmLabel: "BGM (音楽)",
+                soundOn: "有効 (ON)",
+                soundOff: "無効 (OFF)",
+                probTitle: "ルーレット確率一覧",
+                luckActive: "[ラックUP中]",
+                itemHeader: "景品名",
+                probHeader: "確率",
+                lblCoin: "コイン",
+                lblMoney: "お金",
+                readyMsg: "[ システム準備完了 ]",
+                processingMsg: "[ 処理中... ]",
+                fullBaseAlert: "⚠ 警告：基地がいっぱいです！ルーレットを引く前にメニューからキャラクターを売却してください。",
+                notEnoughMoney: "お金が足りません（50$必要です）。",
+                mutationThunder: "雷バフ",
+                mutationWater: "ウォーターバフ",
+                spinBtn: "回す (50$)",
+                probBtn: "確率を見る",
+                fastSpinOff: "高速スピン: OFF",
+                fastSpinOn: "高速スピン: ON"
+            },
+            en: {
+                menuTitle: "SYSTEM MENU",
+                baseBtn: "BASE",
+                settingsBtn: "SETTINGS",
+                backBtn: "BACK",
+                baseTitle: "BASE - CHARACTER BASE",
+                emptyBase: "No characters placed",
+                sellBtn: "SELL",
+                clearAllBtn: "DELETE ALL (SELL ALL)",
+                confirmClearAll: "Are you sure you want to sell ALL characters for money?",
+                settingsTitle: "SYSTEM SETTINGS",
+                langLabel: "Language / 言語",
+                soundLabel: "Sound Effects (SE)",
+                bgmLabel: "Background Music (BGM)",
+                soundOn: "ON",
+                soundOff: "OFF",
+                probTitle: "ROULETTE PROBABILITIES",
+                luckActive: "[LUCK UP]",
+                itemHeader: "Item Name",
+                probHeader: "Probability",
+                lblCoin: "Coins",
+                lblMoney: "Money",
+                readyMsg: "[ SYSTEM READY ]",
+                processingMsg: "[ PROCESSING... ]",
+                fullBaseAlert: "⚠ WARNING: Base is full! Please sell characters before spinning.",
+                notEnoughMoney: "Not enough money (50$ required).",
+                mutationThunder: "Thunder Buff",
+                mutationWater: "Water Buff",
+                spinBtn: "SPIN (50$)",
+                probBtn: "VIEW PROBS",
+                fastSpinOff: "FAST SPIN: OFF",
+                fastSpinOn: "FAST SPIN: ON"
+            }
+        };
+
+        function t(key) {
+            return (i18n[currentLang] && i18n[currentLang][key]) ? i18n[currentLang][key] : key;
+        }
+
+        // --- Web Audio API 高品質サウンドジェネレーター ---
+        class CyberAudioSynthesizer {
+            constructor() {
+                this.ctx = null;
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+            playClick() {
+                if (!isSoundEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            }
+            playSpin() {
+                if (!isSoundEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+            playJackpot() {
+                if (!isSoundEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const notes = [440, 554.37, 659.25, 880, 1108.73, 1318.51, 1760];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.value = freq;
+                    const startTime = this.ctx.currentTime + idx * 0.06;
+                    gain.gain.setValueAtTime(0.25, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.4);
+                });
+            }
+        }
+
+        const audioSynth = new CyberAudioSynthesizer();
+
+        let coins = parseInt(localStorage.getItem('coins')) || 0;
+        let money = parseInt(localStorage.getItem('money')) || 500; 
+        let specialTickets = parseInt(localStorage.getItem('specialTickets')) || 0;
+        
+        let unlockedCharacters = JSON.parse(localStorage.getItem('unlockedCharacters')) || {};
+        let baseItems = JSON.parse(localStorage.getItem('baseItems')) || [];
+
+        let baseProbSpecial = 40.0;
+        let luckMultiplier = 1.0;
+        let mutationProb = 10.0; 
+        
+        let luckEndTime = 0;
+        let activeMutations = { thunder: 0, water: 0 };
+
+        let currentRotation = 0; 
+        let isSpinning = false;  
+        let isInfiniteSpin = false; 
+        let isFastSpin = false; 
+        let isAdminUnlocked = false;
+
+        function getRemainingTimeText(endTime) {
+            if (endTime === -1 || endTime === 0) return "∞";
+            const diff = Math.max(0, endTime - Date.now());
+            const sec = Math.ceil(diff / 1000);
+            if (sec > 60) return Math.floor(sec/60) + "分" + (sec%60) + "秒";
+            return sec + "秒";
+        }
+
+        // キャラクター抽選ロジック
+        function rollCharacter(guaranteedRarity = null) {
+            let pool = characters;
+            if (guaranteedRarity) {
+                pool = characters.filter(c => c.rarity === guaranteedRarity);
+                if(pool.length > 0) return pool[Math.floor(Math.random() * pool.length)];
+            }
+            
+            const rand = Math.random() * 100;
+            if (rand < 0.5) {
+                const thunders = characters.filter(c => c.rarity === 'サンダー');
+                return thunders[Math.floor(Math.random() * thunders.length)];
+            }
+            if (rand < 2.0) {
+                const secrets = characters.filter(c => c.rarity === 'シークレット');
+                return secrets[Math.floor(Math.random() * secrets.length)];
+            }
+            if (rand < 6.0) {
+                const gods = characters.filter(c => c.rarity === 'ゴット');
+                return gods[Math.floor(Math.random() * gods.length)];
+            }
+            if (rand < 21.0) {
+                const legends = characters.filter(c => c.rarity === 'レジェンド');
+                return legends[Math.floor(Math.random() * legends.length)];
+            }
+            if (rand < 51.0) {
+                const rares = characters.filter(c => c.rarity === 'レア');
+                return rares[Math.floor(Math.random() * rares.length)];
+            }
+            const uncommons = characters.filter(c => c.rarity === 'アンコモン');
+            return uncommons[Math.floor(Math.random() * uncommons.length)];
+        }
+
+        function rollMutation() {
+            const rand = Math.random() * 100;
+            if (rand < 0.1) return 'rainbow'; // 新追加 レインボー
+            if (rand < 1) return 'diamond'; 
+            if (rand < 6) return 'gold';    
+            return 'normal';
+        }
+
+        const updateUI = () => {
+            document.getElementById('money-val').innerText = formatMoney(money);
+            document.getElementById('special-ticket-count').innerText = specialTickets;
+            
+            document.getElementById('lbl-money-count').innerText = t('lblMoney');
+            document.getElementById('spin-btn').innerText = t('spinBtn');
+            document.getElementById('prob-btn').innerText = t('probBtn');
+            
+            const fastBtn = document.getElementById('fast-spin-btn');
+            fastBtn.innerText = isFastSpin ? t('fastSpinOn') : t('fastSpinOff');
+        };
+
+        const saveState = () => {
+            localStorage.setItem('coins', coins); 
+            localStorage.setItem('money', money);
+            localStorage.setItem('specialTickets', specialTickets);
+            localStorage.setItem('baseItems', JSON.stringify(baseItems));
+            localStorage.setItem('unlockedCharacters', JSON.stringify(unlockedCharacters));
+            localStorage.setItem('appLang', currentLang);
+            localStorage.setItem('soundEnabled', isSoundEnabled);
+            localStorage.setItem('bgmEnabled', isBgmEnabled);
+        };
+
+        function toggleFastSpin() {
+            audioSynth.playClick();
+            isFastSpin = !isFastSpin;
+            updateUI();
+            
+            const wheel = document.getElementById('wheel');
+            wheel.style.transition = isFastSpin ? 'transform 1s cubic-bezier(0.1, 0.8, 0.1, 1)' : 'transform 4s cubic-bezier(0.1, 0.8, 0.1, 1)';
+        }
+
+        const handleNormalSpin = () => {
+            audioSynth.playClick();
+            if (money < 50 && !isInfiniteSpin) {
+                alert(t('notEnoughMoney'));
+                return;
+            }
+            if (baseItems.length >= 10) {
+                alert(t('fullBaseAlert'));
+                return;
+            }
+            if (isSpinning) return;
+
+            if (!isInfiniteSpin) {
+                money -= 50;
+            }
+            updateUI();
+            processSpin();
+        };
+
+        const processSpin = () => {
+            isSpinning = true;
+            document.getElementById('spin-btn').disabled = true;
+            
+            const resultElement = document.getElementById('roulette-result');
+            resultElement.innerText = t('processingMsg');
+            resultElement.style.color = "#0ff";
+
+            audioSynth.playSpin();
+            if (isSoundEnabled) {
+                const spinSound = document.getElementById('spin-sound');
+                spinSound.currentTime = 0;
+                spinSound.play().catch(() => {});
+            }
+
+            const rand = Math.random() * 100;
+            let targetAngle = 0;
+            let resultType = "";
+
+            if (rand < 0.005) {
+                resultType = "サンダー";
+                targetAngle = 360 - 225;
+            } else if (rand < 40) {
+                resultType = "アンコモン";
+                targetAngle = Math.random() > 0.5 ? 360 - 22.5 : 360 - 270;
+            } else if (rand < 45) {
+                resultType = "ゴット";
+                targetAngle = 360 - 67.5;
+            } else if (rand < 60) {
+                resultType = "レジェンド";
+                targetAngle = 360 - 112.5;
+            } else {
+                resultType = "gacha";
+                targetAngle = 360 - 157.5;
+            }
+
+            const randomOffset = (Math.random() * 20) - 10;
+            targetAngle += randomOffset;
+
+            const currentDeg = currentRotation % 360;
+            let extraRotation = targetAngle - currentDeg;
+            if (extraRotation < 0) extraRotation += 360;
+            
+            currentRotation += (1800 + extraRotation);
+            document.getElementById('wheel').style.transform = `rotate(${currentRotation}deg)`;
+
+            const spinDuration = isFastSpin ? 1000 : 4000;
+
+            setTimeout(() => {
+                let rolledChar;
+                if (resultType === "gacha") {
+                    rolledChar = rollCharacter();
+                } else {
+                    rolledChar = rollCharacter(resultType);
+                }
+
+                let mutation = rollMutation();
+                let storeId = rolledChar.id + ":" + mutation + ":none";
+
+                baseItems.push(storeId);
+                unlockedCharacters[rolledChar.id + ":" + mutation] = true;
+                
+                money += 100;
+                
+                let mutText = "";
+                if (mutation === 'gold') mutText = "【GOLD変異】";
+                if (mutation === 'diamond') mutText = "【DIAMOND変異】";
+                if (mutation === 'rainbow') mutText = "【RAINBOW変異】";
+
+                resultElement.innerText = `>> 獲得: ${rolledChar.name} ${mutText} (+$${formatMoney(100)}) <<`;
+                resultElement.style.color = rolledChar.color || "#ff00ff";
+                
+                audioSynth.playJackpot();
+                if (isSoundEnabled) {
+                    const audio = document.getElementById('kaminari-audio');
+                    audio.currentTime = 0;
+                    audio.play().catch(() => {});
+                }
+
+                saveState();
+                isSpinning = false;
+                document.getElementById('spin-btn').disabled = false;
+                updateUI();
+            }, spinDuration);
+        };
+
+        const updateStatusEffects = () => {
+            const now = Date.now();
+            const kaminariIcon = document.getElementById('kaminari-icon');
+            
+            const luckUI = document.getElementById('luck-display-container');
+            if (luckMultiplier > 1.0) {
+                if (luckEndTime > 0 && now > luckEndTime) {
+                    luckMultiplier = 1.0;
+                    luckEndTime = 0;
+                    luckUI.style.display = 'none';
+                } else {
+                    document.getElementById('luck-multiplier-val').innerText = luckMultiplier.toFixed(1);
+                    document.getElementById('luck-time-val').innerText = "残り: " + getRemainingTimeText(luckEndTime);
+                    luckUI.style.display = 'flex';
+                }
+            } else {
+                luckUI.style.display = 'none';
+            }
+
+            const mutUI = document.getElementById('mutation-display-container');
+            let mutHtml = '';
+            let isMutActive = false;
+
+            if (activeMutations.thunder !== 0) {
+                if (activeMutations.thunder > 0 && now > activeMutations.thunder) {
+                    activeMutations.thunder = 0;
+                    kaminariIcon.classList.remove('mutation-thunder');
+                } else {
+                    let thunderTimeStr = getRemainingTimeText(activeMutations.thunder);
+                    // 画像なし、テキストのみ、右揃え
+                    mutHtml += `<div style="display:flex; align-items:center; justify-content:flex-end;"><div class="status-text" style="color:#ffd700;font-size:1.1em;line-height:1.1;text-align:right;">${t('mutationThunder')}<br><span style="font-size:0.6em;color:#fff;text-shadow:none;">残り: ${thunderTimeStr}</span></div></div>`;
+                    kaminariIcon.classList.add('mutation-thunder');
+                    isMutActive = true;
+                }
+            } else {
+                kaminariIcon.classList.remove('mutation-thunder');
+            }
+
+            if (activeMutations.water !== 0) {
+                if (activeMutations.water > 0 && now > activeMutations.water) {
+                    activeMutations.water = 0;
+                    kaminariIcon.classList.remove('mutation-water');
+                } else {
+                    let waterTimeStr = getRemainingTimeText(activeMutations.water);
+                    // 画像なし、テキストのみ、右揃え
+                    mutHtml += `<div style="display:flex; align-items:center; justify-content:flex-end;"><div class="status-text" style="color:#00bfff;font-size:1.1em;line-height:1.1;text-align:right;">${t('mutationWater')}<br><span style="font-size:0.6em;color:#fff;text-shadow:none;">残り: ${waterTimeStr}</span></div></div>`;
+                    kaminariIcon.classList.add('mutation-water');
+                    isMutActive = true;
+                }
+            } else {
+                kaminariIcon.classList.remove('mutation-water');
+            }
+
+            if (isMutActive) {
+                mutUI.innerHTML = mutHtml;
+                mutUI.style.display = 'flex';
+            } else {
+                mutUI.style.display = 'none';
+                mutUI.innerHTML = '';
+            }
+        };
+
+        document.getElementById('spin-btn').addEventListener('click', handleNormalSpin);
+
+        updateUI();
+        updateStatusEffects();
+        setInterval(updateStatusEffects, 1000);
+
+        const modal = document.getElementById('main-modal');
+        const modalBody = document.getElementById('modal-body');
+
+        let secretBuffer = "";
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'select') return;
+
+            if (e.key.toLowerCase() === 'm') {
+                if (modal.style.display === 'block') {
+                    closeModal();
+                } else {
+                    openMenu();
+                }
+            }
+
+            if (isAdminUnlocked && e.key.toLowerCase() === 'k') {
+                const adminPanel = document.getElementById('admin-panel');
+                adminPanel.style.display = adminPanel.style.display === 'block' ? 'none' : 'block';
+            }
+
+            secretBuffer += e.key;
+            if (secretBuffer.length > 10) {
+                secretBuffer = secretBuffer.slice(-10);
+            }
+            if (secretBuffer.includes("140923")) {
+                isAdminUnlocked = true;
+                document.getElementById('admin-panel').style.display = 'block';
+                secretBuffer = ""; 
+            }
+        });
+
+        function closeModal() {
+            audioSynth.playClick();
+            modal.style.display = 'none';
+        }
+
+        // インデックス画面 (レインボー追加)
+        function showIndexMenu(viewType = 'normal') {
+            audioSynth.playClick();
+            modal.style.display = 'block';
+            
+            let tabsHtml = `
+                <div class="index-tabs" style="display:flex; justify-content:center; margin-bottom:15px; flex-wrap:wrap; gap:5px;">
+                    <button onclick="showIndexMenu('normal')" style="${viewType==='normal' ? 'background:var(--primary-cyan); color:#000;' : ''}">ノーマル</button>
+                    <button onclick="showIndexMenu('gold')" style="border-color:gold; color:gold; ${viewType==='gold' ? 'background:gold; color:#000;' : ''}">ゴールド</button>
+                    <button onclick="showIndexMenu('diamond')" style="border-color:cyan; color:cyan; ${viewType==='diamond' ? 'background:cyan; color:#000;' : ''}">ダイヤモンド</button>
+                    <button onclick="showIndexMenu('rainbow')" style="border-color:#ff00ff; color:#ff00ff; ${viewType==='rainbow' ? 'background:linear-gradient(90deg, red, lime, blue); color:#fff; border:none;' : ''}">レインボー</button>
+                </div>
+            `;
+
+            let gridHtml = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:20px; max-height:450px; overflow-y:auto; padding:10px;">';
+
+            const rarityWeights = { 'アンコモン': 1, 'レア': 2, 'レジェンド': 3, 'ゴット': 4, 'サンダー': 5, 'シークレット': 6 };
+            let sortedCharacters = [...characters].sort((a, b) => (rarityWeights[a.rarity] || 99) - (rarityWeights[b.rarity] || 99));
+
+            sortedCharacters.forEach(c => {
+                const storeId = c.id + ":" + viewType;
+                const isUnlocked = unlockedCharacters[storeId] || (viewType === 'normal' && unlockedCharacters[c.id]);
+
+                let extraClass = "";
+                if(viewType === 'gold') extraClass = "filter-gold";
+                if(viewType === 'diamond') extraClass = "filter-diamond";
+                if(viewType === 'rainbow') extraClass = "filter-rainbow";
+
+                let imgStyle = isUnlocked ? `width:120px; height:120px; filter:drop-shadow(0 0 10px ${c.color});` : "width:120px; height:120px; filter:brightness(0) opacity(0.3);";
+                let statusText = isUnlocked ? "<span style='color:#0f0; font-size:1em; font-weight:bold;'>[ 取得済 ]</span>" : "<span style='color:#f00; font-size:1em;'>[ 未取得 ]</span>";
+                let titleText = isUnlocked ? c.name : "???";
+
+                gridHtml += `
+                    <div style="background:rgba(0,0,0,0.6); padding: 15px; border: 1px solid ${isUnlocked ? c.color : '#333'}; border-radius:8px; text-align:center;">
+                        <img src="${c.img}" alt="${c.id}" class="${isUnlocked ? extraClass : ''}" style="${imgStyle} transition:all 0.5s; object-fit:contain;">
+                        <div style="color:${isUnlocked ? c.color : '#666'}; margin: 10px 0 5px; font-size:1.1em; font-weight:bold; word-wrap:break-word;">${titleText}</div>
+                        <div style="color:#ddd; font-size:0.9em; margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px;">${c.rarity}</div>
+                        ${statusText}
+                    </div>
+                `;
+            });
+            gridHtml += '</div>';
+
+            modalBody.innerHTML = `
+                <h2 style="color:#00ff66; text-transform:uppercase; letter-spacing:2px; margin-bottom: 20px;">CHARACTER INDEX</h2>
+                ${tabsHtml}
+                ${gridHtml}
+                <br>
+                <button onclick="closeModal()" style="font-size:0.9em; padding:10px 20px; border-color:#00ff66; color:#00ff66;">閉じる</button>
+            `;
+        }
+
+        function getBaseBuffProbability() {
+            const now = Date.now();
+            const isAnyBuffActive = (activeMutations.thunder !== 0 && (activeMutations.thunder > now || activeMutations.thunder === -1)) || 
+                                    (activeMutations.water !== 0 && (activeMutations.water > now || activeMutations.water === -1));
+            return isAnyBuffActive ? mutationProb * 2.5 : mutationProb;
+        }
+
+        function showProbability() {
+            audioSynth.playClick();
+            modal.style.display = 'block';
+            let currentBuffProb = getBaseBuffProbability();
+            
+            const now = Date.now();
+            const isAnyBuffActive = (activeMutations.thunder !== 0 && (activeMutations.thunder > now || activeMutations.thunder === -1)) || 
+                                    (activeMutations.water !== 0 && (activeMutations.water > now || activeMutations.water === -1));
+            
+            let buffHtml = "";
+            if (isAnyBuffActive) {
+                buffHtml = `
+                    <div style="background: rgba(0, 255, 255, 0.1); padding: 10px; border: 1px solid var(--primary-cyan); margin-top: 10px;">
+                        <strong style="color: #00ffcc;">[基地バフ付与 成功確率]</strong><br>
+                        現在の設定値: ${currentBuffProb}% <span style="font-size:0.8em;">(全体バフ発動中は確率アップ！)</span>
+                    </div>
+                `;
+            }
+
+            modalBody.innerHTML = `
+                <h2>${t('probTitle')}</h2>
+                <div style="display:flex; justify-content:center; align-items: stretch; text-align:left; flex-direction:column;">
+                    <table class="prob-table" style="margin-top:0;">
+                        <tr><th>${t('itemHeader')}</th><th>${t('probHeader')}</th></tr>
+                        <tr><td style="color:#e6e600;">サンダー確定</td><td>0.005 %</td></tr>
+                        <tr><td style="color:#a8a8a8;">アンコモン確定</td><td>39.995 %</td></tr>
+                        <tr><td style="color:#ff00ff;">Character Gacha</td><td>40.0 %</td></tr>
+                        <tr><td style="color:#ff00ff;">レジェンド確定</td><td>15.0 %</td></tr>
+                        <tr><td style="color:#ff4500;">ゴット確定</td><td>5.0 %</td></tr>
+                    </table>
+                    <p style="font-size:0.8em; color:#fff;">※ガチャ内訳: 通常サンダーは超低確率(0.5%)</p>
+                    ${buffHtml}
+                </div>
+            `;
+        }
+
+        function openMenu() {
+            audioSynth.playClick();
+            modal.style.display = 'block';
+            modalBody.innerHTML = `
+                <h2>${t('menuTitle')}</h2>
+                <button onclick="showBaseMenu()" style="width:80%; margin-top:12px; border-color:#ff00ff; color:#ff00ff;">${t('baseBtn')}</button><br>
+                <button onclick="showSettingsMenu()" style="width:80%; margin-top:12px; border-color:#ffd700; color:#ffd700;">${t('settingsBtn')}</button>
+            `;
+        }
+
+        function showBaseMenu() {
+            audioSynth.playClick();
+            let itemsHtml = "";
+
+            for(let i = 0; i < baseItems.length; i++) {
+                let itemStr = baseItems[i];
+                let parts = itemStr.split(':');
+                let charId = parts[0];
+                let mutType = parts[1] || 'normal';
+                let buffType = parts[2] || 'none';
+                
+                let charInfo = characters.find(c => c.id === charId) || characters[0];
+                
+                let extraClass = "";
+                if(mutType === 'gold') extraClass += " filter-gold";
+                if(mutType === 'diamond') extraClass += " filter-diamond";
+                if(mutType === 'rainbow') extraClass += " filter-rainbow";
+                if(buffType === 'thunder') extraClass += " filter-thunder";
+                if(buffType === 'water') extraClass += " filter-water";
+
+                itemsHtml += `
+                    <div class="base-item-wrapper" onclick="manageBaseCharacter(${i})">
+                        <img src="${charInfo.img}" class="base-item ${extraClass}" alt="${charInfo.name}" title="${charInfo.name}">
+                    </div>
+                `;
+            }
+
+            modalBody.innerHTML = `
+                <h2 style="color:#ff00ff;">${t('baseTitle')} ( ${baseItems.length} / 10 )</h2>
+                <div class="base-grid">
+                    ${itemsHtml || `<span style="color:#777; font-size:0.9em; align-self:center;">${t('emptyBase')}</span>`}
+                </div>
+                
+                <div style="margin-top: 15px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+                    ${baseItems.length > 0 ? `<button onclick="clearAllCharacters()" style="border-color:#ff4444; color:#ff4444; font-size:0.85em; padding:10px 15px;">${t('clearAllBtn')}</button>` : ''}
+                    <button onclick="openMenu()" style="font-size:0.85em; padding:10px 15px;">${t('backBtn')}</button>
+                </div>
+            `;
+        }
+
+        function manageBaseCharacter(index) {
+            audioSynth.playClick();
+            let itemStr = baseItems[index];
+            let parts = itemStr.split(':');
+            let charId = parts[0];
+            let mutType = parts[1] || 'normal';
+            let buffType = parts[2] || 'none';
+
+            let charInfo = characters.find(c => c.id === charId) || characters[0];
+            let sellPrice = 100;
+            if (charInfo.rarity === 'ゴット') sellPrice = 2000;
+            if (charInfo.rarity === 'レジェンド') sellPrice = 800;
+            if (charInfo.rarity === 'シークレット') sellPrice = 3000;
+            if (charInfo.rarity === 'サンダー') sellPrice = 5000;
+            
+            if (mutType === 'gold') sellPrice *= 3;
+            if (mutType === 'diamond') sellPrice *= 10;
+            if (mutType === 'rainbow') sellPrice *= 50;
+
+            let buffText = "<span style='color:#777;'>[ バフなし ]</span>";
+            if(buffType === 'thunder') buffText = "<span style='color:#e6e600; font-weight:bold;'>[ 雷バフ 発動中 ]</span>";
+            if(buffType === 'water') buffText = "<span style='color:#00bfff; font-weight:bold;'>[ ウォーターバフ 発動中 ]</span>";
+
+            let mutText = "";
+            if (mutType === 'gold') mutText = "<span style='color:gold;'>【GOLD】</span>";
+            if (mutType === 'diamond') mutText = "<span style='color:cyan;'>【DIAMOND】</span>";
+            if (mutType === 'rainbow') mutText = "<span style='color:#ff00ff;'>【RAINBOW】</span>";
+
+            let extraClass = "";
+            if(mutType === 'gold') extraClass += " filter-gold";
+            if(mutType === 'diamond') extraClass += " filter-diamond";
+            if(mutType === 'rainbow') extraClass += " filter-rainbow";
+            if(buffType === 'thunder') extraClass += " filter-thunder";
+            if(buffType === 'water') extraClass += " filter-water";
+
+            modalBody.innerHTML = `
+                <h2 style="color:${charInfo.color || '#fff'};">${charInfo.name} ${mutText}</h2>
+                <div style="margin: 20px 0;">
+                    <img src="${charInfo.img}" class="base-item ${extraClass}" style="width:150px; height:150px;">
+                </div>
+                <div style="font-size: 1.2em; margin-bottom: 20px;">
+                    ステータス: ${buffText}
+                </div>
+                
+                <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap;">
+                    <button onclick="sellCharacter(${index}, ${sellPrice})" style="border-color:#ff4444; color:#ff4444;">売る ($${formatMoney(sellPrice)})</button>
+                    <button onclick="applyBuffToCharacter(${index})" style="border-color:#00ffcc; color:#00ffcc;" ${buffType !== 'none' ? 'disabled' : ''}>バフ付与を試みる</button>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <button onclick="showBaseMenu()" style="font-size:0.85em; padding:10px 15px;">基地へ戻る</button>
+                </div>
+            `;
+        }
+
+        function sellCharacter(index, price) {
+            audioSynth.playClick();
+            if (confirm(`このキャラクターを売却し、$${formatMoney(price)} を獲得しますか？`)) {
+                baseItems.splice(index, 1);
+                money += price;
+                saveState();
+                updateUI();
+                showBaseMenu();
+            }
+        }
+
+        function applyBuffToCharacter(index) {
+            audioSynth.playClick();
+            let itemStr = baseItems[index];
+            let parts = itemStr.split(':');
+            let charId = parts[0];
+            let mutType = parts[1] || 'normal';
+            let buffType = parts[2] || 'none';
+
+            if (buffType !== 'none') {
+                alert("すでにバフが付与されています。");
+                return;
+            }
+
+            let currentProb = getBaseBuffProbability();
+            let rand = Math.random() * 100;
+
+            if (rand < currentProb) {
+                let newBuff = Math.random() < 0.5 ? 'thunder' : 'water';
+                baseItems[index] = `${charId}:${mutType}:${newBuff}`;
+                saveState();
+                alert(`大成功！ ${newBuff === 'thunder' ? '雷バフ' : 'ウォーターバフ'} が付与されました！`);
+                manageBaseCharacter(index); 
+            } else {
+                alert("バフの付与に失敗しました...");
+            }
+        }
+
+        function clearAllCharacters() {
+            audioSynth.playClick();
+            if (baseItems.length > 0) {
+                if (confirm(t('confirmClearAll'))) {
+                    let totalMoney = 0;
+                    for (let i = 0; i < baseItems.length; i++) {
+                        let parts = baseItems[i].split(':');
+                        let charInfo = characters.find(c => c.id === parts[0]) || characters[0];
+                        let mutType = parts[1] || 'normal';
+                        
+                        let sellPrice = 100;
+                        if (charInfo.rarity === 'ゴット') sellPrice = 2000;
+                        if (charInfo.rarity === 'レジェンド') sellPrice = 800;
+                        if (charInfo.rarity === 'シークレット') sellPrice = 3000;
+                        if (charInfo.rarity === 'サンダー') sellPrice = 5000;
+                        if (mutType === 'gold') sellPrice *= 3;
+                        if (mutType === 'diamond') sellPrice *= 10;
+                        if (mutType === 'rainbow') sellPrice *= 50;
+                        
+                        totalMoney += sellPrice;
+                    }
+                    money += totalMoney;
+                    baseItems = [];
+                    saveState();
+                    updateUI();
+                    showBaseMenu();
+                    alert(`全て売却し、合計 $${formatMoney(totalMoney)} を獲得しました！`);
+                }
+            }
+        }
+
+        function showSettingsMenu() {
+            audioSynth.playClick();
+            modalBody.innerHTML = `
+                <h2 style="color:#ffd700;">${t('settingsTitle')}</h2>
+                
+                <div class="settings-row">
+                    <span>${t('langLabel')}</span>
+                    <select id="setting-lang" onchange="changeLanguage(this.value)">
+                        <option value="ja" ${currentLang === 'ja' ? 'selected' : ''}>日本語 (Japanese)</option>
+                        <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option>
+                    </select>
+                </div>
+
+                <div class="settings-row">
+                    <span>${t('soundLabel')}</span>
+                    <select id="setting-sound" onchange="changeSoundSetting(this.value)">
+                        <option value="true" ${isSoundEnabled ? 'selected' : ''}>${t('soundOn')}</option>
+                        <option value="false" ${!isSoundEnabled ? 'selected' : ''}>${t('soundOff')}</option>
+                    </select>
+                </div>
+
+                <div class="settings-row">
+                    <span>${t('bgmLabel')}</span>
+                    <select id="setting-bgm" onchange="changeBgmSetting(this.value)">
+                        <option value="true" ${isBgmEnabled ? 'selected' : ''}>${t('soundOn')}</option>
+                        <option value="false" ${!isBgmEnabled ? 'selected' : ''}>${t('soundOff')}</option>
+                    </select>
+                </div>
+
+                <br>
+                <button onclick="openMenu()" style="font-size:0.85em; padding:10px 20px;">${t('backBtn')}</button>
+            `;
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            saveState();
+            updateUI();
+            showSettingsMenu();
+        }
+
+        function changeSoundSetting(val) {
+            isSoundEnabled = (val === 'true');
+            saveState();
+            showSettingsMenu();
+        }
+
+        function changeBgmSetting(val) {
+            isBgmEnabled = (val === 'true');
+            saveState();
+            const bgm = document.getElementById('bgm-audio');
+            if (isBgmEnabled) {
+                bgm.play().catch(()=>{});
+            } else {
+                bgm.pause();
+            }
+            showSettingsMenu();
+        }
+
+        /* --- 管理者パネル用関数 --- */
+        function switchAdminTab(tabId, e) {
+            audioSynth.playClick();
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+            
+            if(e && e.target) e.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function closeAdmin() {
+            audioSynth.playClick();
+            document.getElementById('admin-panel').style.display = 'none';
+        }
+
+        function addAdminItem(type) {
+            audioSynth.playClick();
+            if (type === 'money') {
+                const val = parseInt(document.getElementById('admin-add-money').value) || 0;
+                money += val;
+            }
+            saveState();
+            updateUI();
+        }
+        
+        function showAdminCharList() {
+            audioSynth.playClick();
+            modal.style.display = 'block';
+            let html = '<h2 style="color:#00ffcc; margin-bottom:15px;">基地にキャラクターを追加</h2><div style="display:flex; flex-wrap:wrap; justify-content:center; gap:15px; max-height:500px; overflow-y:auto; padding:15px;">';
+            characters.forEach(c => {
+                html += `
+                    <div style="background:rgba(0,0,0,0.8); padding:15px; border:1px solid ${c.color}; border-radius:5px; text-align:center; min-width: 140px;">
+                        <img src="${c.img}" style="width:70px; height:70px; object-fit:contain; filter:drop-shadow(0 0 5px ${c.color});"><br>
+                        <div style="color:${c.color}; font-size:0.9em; margin: 8px 0; font-weight:bold; word-wrap:break-word;">${c.name}</div>
+                        <div style="display:flex; flex-direction:column; gap:5px;">
+                            <button onclick="addSpecificCharToBase('${c.id}', 'normal')" style="padding:6px; font-size:0.8em;">通常追加</button>
+                            <button onclick="addSpecificCharToBase('${c.id}', 'gold')" style="padding:6px; font-size:0.8em; color:gold; border-color:gold;">GOLD追加</button>
+                            <button onclick="addSpecificCharToBase('${c.id}', 'diamond')" style="padding:6px; font-size:0.8em; color:cyan; border-color:cyan;">DIAMOND追加</button>
+                            <button onclick="addSpecificCharToBase('${c.id}', 'rainbow')" style="padding:6px; font-size:0.8em; color:#ff00ff; border-color:#ff00ff;">RAINBOW追加</button>
+                        </div>
+                    </div>`;
+            });
+            html += '</div><br><button onclick="closeModal()" style="padding:10px 20px;">閉じる</button>';
+            modalBody.innerHTML = html;
+        }
+
+        function addSpecificCharToBase(charId, mutation) {
+            audioSynth.playClick();
+            if (baseItems.length >= 10) {
+                alert("基地がいっぱいです！");
+                return;
+            }
+            baseItems.push(`${charId}:${mutation}:none`);
+            unlockedCharacters[`${charId}:${mutation}`] = true;
+            saveState();
+            updateUI();
+            
+            let mutText = "通常";
+            if (mutation === 'gold') mutText = "GOLD";
+            if (mutation === 'diamond') mutText = "DIAMOND";
+            if (mutation === 'rainbow') mutText = "RAINBOW";
+            
+            alert(`${charId} (${mutText}) を基地に追加しました。現在 ${baseItems.length}体`);
+        }
+
+        function updateLuck() {
+            audioSynth.playClick();
+            const multi = parseFloat(document.getElementById('admin-luck-multi').value);
+            const timeSec = parseInt(document.getElementById('admin-luck-time').value);
+            if (!isNaN(multi) && multi >= 1) {
+                luckMultiplier = multi;
+                if (!isNaN(timeSec) && timeSec > 0) {
+                    luckEndTime = Date.now() + timeSec * 1000;
+                } else {
+                    luckEndTime = 0;
+                }
+                updateStatusEffects();
+                alert(`ラック倍率 ${luckMultiplier}倍 を ${timeSec > 0 ? timeSec + '秒間' : '無期限で'} 適用しました。`);
+            }
+        }
+
+        function activateMutation() {
+            audioSynth.playClick();
+            const type = document.getElementById('admin-mutation-type').value;
+            const timeSec = parseInt(document.getElementById('admin-mutation-time').value);
+            if (type) {
+                if (!isNaN(timeSec) && timeSec > 0) {
+                    activeMutations[type] = Date.now() + timeSec * 1000;
+                } else {
+                    activeMutations[type] = -1;
+                }
+                updateStatusEffects();
+                alert(`${type === 'thunder' ? '雷' : 'ウォーター'}全体バフ を ${timeSec > 0 ? timeSec + '秒間' : '無期限で'} 発動しました。`);
+            }
+        }
+
+        function updateMutationProb() {
+            audioSynth.playClick();
+            const pMutation = parseFloat(document.getElementById('admin-prob-mutation').value);
+            if (!isNaN(pMutation) && pMutation >= 0) {
+                mutationProb = pMutation;
+                alert(`バフの基本付与確率を ${mutationProb}% に更新しました。`);
+            }
+        }
+
+        function toggleInfinite(checked) {
+            audioSynth.playClick();
+            isInfiniteSpin = checked;
+            document.getElementById('spin-btn').disabled = false;
+        }
+
+        dragElement(document.getElementById("admin-panel"));
+
+        function dragElement(elmnt) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            document.getElementById("admin-header").onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON' || e.target.className === 'close-admin' || e.target.classList.contains('admin-tab')) return;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+    </script>
+</body>
+</html>
