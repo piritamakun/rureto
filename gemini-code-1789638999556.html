@@ -1,0 +1,2365 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サイバールーレットシステム - Kaminari Update Deluxe & Rebirth</title>
+    <!-- PeerJS P2P通信ライブラリ -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        /* サイバーパンク風の全体スタイル & アニメーション背景 */
+        :root {
+            --primary-cyan: #00ffff;
+            --primary-pink: #ff00ff;
+            --primary-yellow: #ffd700;
+            --primary-green: #00ff66;
+            --bg-dark: #030712;
+            --panel-bg: rgba(6, 18, 36, 0.85);
+            --border-glow: rgba(0, 255, 255, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, 'Hiragino Kaku Gothic ProN', 'Meiryo', monospace;
+            background-color: var(--bg-dark);
+            color: var(--primary-cyan);
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+            height: 100vh;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.08) 0%, transparent 60%),
+                linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            position: relative;
+        }
+
+        /* スキャンラインエフェクト */
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* 左上メニューボタン */
+        #menu-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 60;
+            background: rgba(0, 20, 40, 0.85);
+            color: var(--primary-cyan);
+            border: 1px solid var(--primary-cyan);
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.4), inset 0 0 8px rgba(0, 255, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        #menu-btn:hover {
+            background: rgba(0, 255, 255, 0.25);
+            box-shadow: 0 0 20px var(--primary-cyan), inset 0 0 12px var(--primary-cyan);
+            transform: translateY(-2px) scale(1.02);
+            text-shadow: 0 0 8px var(--primary-cyan);
+        }
+        #menu-btn:active {
+            transform: translateY(1px) scale(0.96);
+        }
+
+        /* 画面左真ん中 インデックスボタン */
+        #index-btn {
+            position: absolute;
+            top: 38%;
+            left: 20px;
+            transform: translateY(-50%);
+            z-index: 60;
+            background: rgba(0, 40, 20, 0.85);
+            color: var(--primary-green);
+            border: 1px solid var(--primary-green);
+            padding: 25px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(0, 255, 102, 0.4), inset 0 0 8px rgba(0, 255, 102, 0.2);
+            text-transform: uppercase;
+            writing-mode: vertical-rl;
+            letter-spacing: 4px;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            clip-path: polygon(100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px), 0 0, calc(100% - 10px) 0);
+        }
+        #index-btn:hover {
+            background: rgba(0, 255, 102, 0.25);
+            box-shadow: 0 0 20px var(--primary-green), inset 0 0 12px var(--primary-green);
+            transform: translateY(-50%) scale(1.05);
+            text-shadow: 0 0 8px var(--primary-green);
+        }
+        #index-btn:active {
+            transform: translateY(-50%) scale(0.96);
+        }
+
+        /* 画面左真ん中 トレードボタン（インデックスボタンの下） */
+        #trade-btn {
+            position: absolute;
+            top: 58%;
+            left: 20px;
+            transform: translateY(-50%);
+            z-index: 60;
+            background: rgba(40, 0, 40, 0.85);
+            color: var(--primary-pink);
+            border: 1px solid var(--primary-pink);
+            padding: 25px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(255, 0, 255, 0.4), inset 0 0 8px rgba(255, 0, 255, 0.2);
+            text-transform: uppercase;
+            writing-mode: vertical-rl;
+            letter-spacing: 4px;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            clip-path: polygon(100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px), 0 0, calc(100% - 10px) 0);
+        }
+        #trade-btn:hover {
+            background: rgba(255, 0, 255, 0.25);
+            box-shadow: 0 0 20px var(--primary-pink), inset 0 0 12px var(--primary-pink);
+            transform: translateY(-50%) scale(1.05);
+            text-shadow: 0 0 8px var(--primary-pink);
+        }
+        #trade-btn:active {
+            transform: translateY(-50%) scale(0.96);
+        }
+
+        /* 左側下部 リバースボタン */
+        #rebirth-btn {
+            position: absolute;
+            top: 78%;
+            left: 20px;
+            transform: translateY(-50%);
+            z-index: 60;
+            background: rgba(40, 20, 0, 0.85);
+            color: var(--primary-yellow);
+            border: 1px solid var(--primary-yellow);
+            padding: 25px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.4), inset 0 0 8px rgba(255, 215, 0, 0.2);
+            text-transform: uppercase;
+            writing-mode: vertical-rl;
+            letter-spacing: 4px;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            clip-path: polygon(100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px), 0 0, calc(100% - 10px) 0);
+        }
+        #rebirth-btn:hover {
+            background: rgba(255, 215, 0, 0.25);
+            box-shadow: 0 0 20px var(--primary-yellow), inset 0 0 12px var(--primary-yellow);
+            transform: translateY(-50%) scale(1.05);
+            text-shadow: 0 0 8px var(--primary-yellow);
+        }
+        #rebirth-btn:active {
+            transform: translateY(-50%) scale(0.96);
+        }
+
+        /* 右上のステータスパネル (非表示) */
+        .stats-container {
+            display: none;
+        }
+
+        /* 左下のお金表示 */
+        #money-display-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(6, 36, 18, 0.85);
+            border: 1px solid var(--primary-green);
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.3), inset 0 0 15px rgba(0, 255, 102, 0.15);
+            padding: 15px 25px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: left;
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            font-size: 1.5em;
+            color: var(--primary-green);
+            text-shadow: 0 0 10px var(--primary-green);
+            display: flex;
+            align-items: baseline;
+        }
+
+        /* ルーレット本体のコンテナ */
+        .roulette-wrapper {
+            position: relative;
+            width: 450px;
+            height: 450px;
+            margin: 40px auto 20px;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.2));
+        }
+
+        /* ターゲットポインター（上部の矢印） */
+        .pointer {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid var(--primary-pink);
+            z-index: 10;
+            filter: drop-shadow(0 0 12px var(--primary-pink));
+            animation: pointerPulse 1.5s infinite alternate ease-in-out;
+        }
+        @keyframes pointerPulse {
+            0% { transform: translateX(-50%) scale(1); }
+            100% { transform: translateX(-50%) scale(1.15); }
+        }
+
+        /* 回転するホイール */
+        .wheel {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid var(--primary-cyan);
+            box-shadow: 0 0 25px var(--primary-cyan), inset 0 0 35px var(--primary-cyan);
+            background: conic-gradient(
+                #0a192f 0deg 45deg,
+                #2b00ff 45deg 90deg,   /* ゴット確定 */
+                #0a192f 90deg 135deg,
+                #ff00ff 135deg 180deg, /* Character Gacha */
+                #051024 180deg 220deg,
+                #888800 220deg 230deg, /* サンダー確定 (極小枠) */
+                #ff1493 230deg 250deg, /* シークレット確定 (追加枠) */
+                #051024 250deg 360deg
+            );
+            transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1);
+            transform: rotate(0deg);
+        }
+
+        /* ルーレット盤面の文字 */
+        .wheel-label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: #fff;
+            text-shadow: 1px 1px 3px #000, 0 0 8px #000, 0 0 10px var(--primary-cyan);
+            pointer-events: none;
+        }
+        .wheel-label span {
+            display: inline-block;
+            margin-top: 45px;
+        }
+        .kaminari-label {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 15px !important;
+            font-size: 13px;
+            line-height: 1.1;
+        }
+        .kaminari-label img {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 2px;
+            filter: drop-shadow(0 0 8px var(--primary-pink));
+            object-fit: contain;
+            position: relative;
+            z-index: 2;
+        }
+
+        #mutation-display-container img {
+            display: none !important;
+        }
+        .mutation-thunder::after, .mutation-water::after {
+            display: none !important;
+        }
+
+        /* 中央の装飾 */
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: var(--bg-dark);
+            border: 2px solid var(--primary-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--primary-cyan), inset 0 0 10px var(--primary-cyan);
+            z-index: 5;
+        }
+
+        /* システムメッセージ（結果表示） */
+        #roulette-result {
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            height: 35px;
+            font-weight: bold;
+            text-shadow: 0 0 8px currentColor;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* コントロールボタン */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            position: relative;
+            background: rgba(0, 255, 255, 0.1);
+            color: var(--primary-cyan);
+            border: 1px solid var(--primary-cyan);
+            padding: 14px 28px;
+            font-size: 1.1em;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.25) inset, 0 0 8px rgba(0, 255, 255, 0.15);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            overflow: hidden;
+        }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        button:hover:not(:disabled)::before {
+            left: 100%;
+        }
+        button:hover:not(:disabled) {
+            background: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px var(--primary-cyan), inset 0 0 10px var(--primary-cyan);
+            text-shadow: 0 0 8px var(--primary-cyan);
+            transform: translateY(-2px) scale(1.03);
+        }
+        button:active:not(:disabled) {
+            transform: translateY(1px) scale(0.97);
+            box-shadow: 0 0 10px var(--primary-cyan);
+        }
+        button:disabled {
+            border-color: #334155;
+            color: #475569;
+            background: rgba(15, 23, 42, 0.6);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #spin10-btn {
+            border-color: var(--primary-pink);
+            color: var(--primary-pink);
+        }
+        #spin10-btn:hover:not(:disabled) {
+            background: rgba(255, 0, 255, 0.3);
+            box-shadow: 0 0 20px var(--primary-pink);
+            text-shadow: 0 0 8px var(--primary-pink);
+        }
+
+        #fast-spin-btn {
+            border-color: var(--primary-yellow);
+            color: var(--primary-yellow);
+        }
+        #fast-spin-btn:hover:not(:disabled) {
+            background: rgba(255, 204, 0, 0.3);
+            box-shadow: 0 0 20px var(--primary-yellow);
+            text-shadow: 0 0 8px var(--primary-yellow);
+        }
+
+        /* メニューモーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(4, 13, 26, 0.95);
+            border: 2px solid var(--primary-cyan);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5), inset 0 0 20px rgba(0, 255, 255, 0.1);
+            padding: 30px;
+            z-index: 100;
+            border-radius: 8px;
+            min-width: 600px;
+            max-width: 90vw;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            animation: modalFadeIn 0.25s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translate(-50%, -46%) scale(0.95); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        .modal h2, .modal p {
+            margin-top: 0;
+            color: #fff;
+            text-shadow: 0 0 8px var(--primary-cyan);
+        }
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            cursor: pointer;
+            font-size: 1.8em;
+            color: var(--primary-pink);
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .close-btn:hover {
+            transform: scale(1.2) rotate(90deg);
+            text-shadow: 0 0 10px var(--primary-pink);
+        }
+        
+        .prob-table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+            color: var(--primary-cyan);
+        }
+        .prob-table th, .prob-table td {
+            border: 1px solid var(--primary-cyan);
+            padding: 10px;
+            text-align: center;
+        }
+
+        /* 近未来風 管理者パネル */
+        #admin-panel {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 120px;
+            width: 420px;
+            background: rgba(5, 15, 30, 0.96);
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.6);
+            z-index: 999;
+            border-radius: 8px;
+            color: #fff;
+            text-align: left;
+            user-select: none;
+            backdrop-filter: blur(10px);
+        }
+        #admin-header {
+            background: linear-gradient(90deg, #00ffcc, #0088ff);
+            color: #000;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: center;
+            cursor: move;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+        
+        .admin-tabs {
+            display: flex;
+            border-bottom: 1px solid #00ffcc;
+        }
+        .admin-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            background: rgba(0, 255, 204, 0.1);
+            color: #00ffcc;
+            font-size: 0.9em;
+            font-weight: bold;
+            border-right: 1px solid #00ffcc;
+            transition: background 0.2s;
+        }
+        .admin-tab:last-child { border-right: none; }
+        .admin-tab.active { background: #00ffcc; color: #000; }
+        .admin-tab-content { display: none; padding: 20px; max-height: 450px; overflow-y: auto; }
+        .admin-tab-content.active { display: block; }
+        .close-admin { position: absolute; top: 10px; right: 15px; cursor: pointer; color: #000; font-size: 1.3em; font-weight: bold; }
+        .admin-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: bold; font-size: 0.9em; }
+        .admin-row input, .admin-row select { background: #000; color: #00ffcc; border: 1px solid #00ffcc; padding: 6px; margin-right: 5px; border-radius: 3px; }
+        .admin-row button { background: rgba(0, 255, 204, 0.15); color: #00ffcc; border: 1px solid #00ffcc; padding: 6px 12px; font-size: 0.85em; margin: 0; box-shadow: none; }
+        .admin-row button:hover { background: #00ffcc; color: #000; box-shadow: 0 0 10px #00ffcc; }
+
+        /* 右下・左下の特殊状態表示コンテナ */
+        .status-display-container {
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            background: rgba(0, 20, 40, 0.8);
+            padding: 8px 18px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            display: none;
+        }
+        
+        #luck-display-container { right: 20px; bottom: 20px; }
+        #mutation-display-container { left: auto; right: 20px; bottom: 95px; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .status-display-container img { width: 48px; height: 48px; margin-right: 10px; object-fit: contain; }
+        .status-text { font-size: 1.5em; font-weight: bold; text-shadow: 0 0 10px currentColor, 0 0 5px #000; }
+
+        /* 基地のアイテム表示用 */
+        .base-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: center;
+            margin-top: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.6);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        .base-item-wrapper {
+            position: relative;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .base-item-wrapper:hover { transform: scale(1.05); }
+        .base-item {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px #ffd700);
+            animation: pulse 2s infinite;
+        }
+        .base-item-rarity {
+            font-size: 0.75em;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 4px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid currentColor;
+            box-shadow: 0 0 8px currentColor;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.85; }
+            50% { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 15px var(--primary-pink)); }
+            100% { transform: scale(1); opacity: 0.85; }
+        }
+
+        /* 設定画面要素 */
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 18px 0;
+            padding: 10px 15px;
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 6px;
+        }
+        .settings-row select, .settings-row input {
+            background: #000;
+            color: var(--primary-cyan);
+            border: 1px solid var(--primary-cyan);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1em;
+        }
+
+        /* トレード画面用の個別スタイル */
+        .trade-box {
+            display: flex;
+            justify-content: space-around;
+            align-items: stretch;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .trade-slot {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--primary-pink);
+            padding: 15px;
+            border-radius: 8px;
+            min-height: 240px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+        .trade-slot-left {
+            border-color: var(--primary-cyan);
+            box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.15);
+        }
+        
+        .trade-slot-display {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+            min-height: 60px;
+            max-height: 120px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.05);
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .trade-char-select {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 8px;
+            width: 100%;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+            background: rgba(0, 20, 30, 0.5);
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .trade-char-item {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            padding: 2px;
+            transition: all 0.2s;
+        }
+        .trade-char-item:hover { filter: brightness(1.2); }
+        .trade-char-item.selected {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 10px var(--primary-green);
+            background: rgba(0, 255, 102, 0.2);
+        }
+
+        /* トレード左側の強調OKボタン */
+        .trade-ok-btn {
+            margin-top: 12px;
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: 2px solid var(--primary-green);
+            color: var(--primary-green);
+            background: rgba(0, 255, 102, 0.15);
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.3);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .trade-ok-btn:hover:not(:disabled) {
+            background: rgba(0, 255, 102, 0.4);
+            box-shadow: 0 0 25px var(--primary-green);
+            transform: scale(1.02);
+        }
+        .trade-ok-btn.active-ok {
+            background: var(--primary-green);
+            color: #000;
+            box-shadow: 0 0 25px var(--primary-green);
+            text-shadow: none;
+        }
+
+        .pulse-text { animation: pulseText 1.5s infinite alternate; }
+        @keyframes pulseText { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* 変異(バフ)エフェクトクラス */
+        .filter-gold { filter: drop-shadow(0 0 15px gold) sepia(1) hue-rotate(15deg) saturate(3) brightness(1.2) !important; }
+        .filter-diamond { filter: drop-shadow(0 0 15px cyan) hue-rotate(180deg) saturate(2) brightness(1.5) !important; }
+        .filter-rainbow { animation: rainbowFilter 2s linear infinite !important; }
+        @keyframes rainbowFilter {
+            0% { filter: drop-shadow(0 0 15px red) hue-rotate(0deg) saturate(3); }
+            50% { filter: drop-shadow(0 0 15px lime) hue-rotate(180deg) saturate(3); }
+            100% { filter: drop-shadow(0 0 15px blue) hue-rotate(360deg) saturate(3); }
+        }
+        .filter-thunder { filter: drop-shadow(0 0 20px #e6e600) hue-rotate(40deg) saturate(2) brightness(1.3) !important; }
+        .filter-water { filter: drop-shadow(0 0 20px #00bfff) hue-rotate(180deg) saturate(2) brightness(1.2) !important; }
+
+        /* タブボタン用 */
+        .index-tabs button { margin: 0 5px; padding: 10px 15px; font-size: 0.9em; }
+    </style>
+
+    <!-- BGMオーディオ -->
+    <audio id="bgm-audio" src="bgm.mp3" autoplay loop preload="auto"></audio>
+</head>
+<body>
+
+    <button id="menu-btn" onclick="openMenu()">MENU</button>
+    <button id="index-btn" onclick="showIndexMenu('normal')">INDEX</button>
+    <button id="trade-btn" onclick="openTradeMenu()">TRADE</button>
+    <button id="rebirth-btn" onclick="openRebirthMenu()">REBIRTH</button>
+
+    <!-- 効果音 -->
+    <audio id="kaminari-audio" src="kaminari.mp3" preload="auto"></audio>
+    <audio id="spin-sound" src="spin.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="win.mp3" preload="auto"></audio>
+
+    <!-- 右下のラック表示 -->
+    <div id="luck-display-container" class="status-display-container">
+        <img src="pixelart_x16-Photoroom (1).png" alt="Clover" style="filter: drop-shadow(0 0 8px #0f0);">
+        <div id="luck-text" class="status-text" style="color:#0f0; text-align:left; line-height:1.1;">
+            x<span id="luck-multiplier-val">1</span><br>
+            <span id="luck-time-val" style="font-size: 0.6em; color: #fff; text-shadow: none;"></span>
+        </div>
+    </div>
+
+    <!-- 右下のバフ表示 -->
+    <div id="mutation-display-container" class="status-display-container"></div>
+
+    <!-- お金表示（左下） -->
+    <div id="money-display-container">
+        <span id="lbl-money-count">お金</span>: $<span id="money-val">0</span>
+        <span id="income-val" style="font-size:0.55em; color:#0f0; margin-left:10px;"></span>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-item" style="display:none;">Characters: <span id="special-ticket-count">0</span></div> 
+    </div>
+
+    <div class="roulette-wrapper">
+        <div class="pointer"></div>
+        <div class="wheel" id="wheel">
+            <div class="wheel-label" style="transform: rotate(22.5deg)"><span style="color:#a8a8a8;">アンコモン確定</span></div>
+            <div class="wheel-label" style="transform: rotate(67.5deg)"><span style="color:#ff4500;">ゴット確定</span></div>
+            <div class="wheel-label" style="transform: rotate(112.5deg)"><span style="color:#ff00ff;">レジェンド確定</span></div>
+            <div class="wheel-label" style="transform: rotate(157.5deg)">
+                <span class="kaminari-label" id="kaminari-icon" style="color:#ff00ff;">
+                    <img src="ゲーム-Photoroom.png" alt="Characters">
+                    Character<br>Gacha
+                </span>
+            </div>
+            <!-- サンダー確定枠 (220-230) -->
+            <div class="wheel-label" style="transform: rotate(225deg)"><span style="color:#e6e600; font-size:14px; margin-top:55px;">サンダー確定</span></div>
+            <!-- シークレット枠 (230-250) NEW -->
+            <div class="wheel-label" style="transform: rotate(240deg)"><span style="color:#ff1493; font-size:14px; margin-top:50px;">シークレット</span></div>
+            
+            <div class="wheel-label" style="transform: rotate(305deg)"><span style="color:#a8a8a8;">アンコモン確定</span></div>
+        </div>
+        <div class="wheel-center"></div>
+    </div>
+
+    <div id="roulette-result" style="color: #0ff;">[ システム準備完了 ]</div>
+
+    <div class="controls">
+        <button id="spin-btn">回す (150$)</button>
+        <button id="spin10-btn" onclick="handle10Spin()">10連 (1.5K$)</button>
+        <button id="prob-btn" onclick="showProbability()">確率を見る</button>
+        <button id="fast-spin-btn" onclick="toggleFastSpin()">高速スピン: OFF</button>
+    </div>
+
+    <div id="main-modal" class="modal">
+        <div class="close-btn" onclick="closeModal()">×</div>
+        <div id="modal-body"></div>
+    </div>
+
+    <!-- 管理者パネル -->
+    <div id="admin-panel">
+        <div id="admin-header">
+            [SYS_ADMIN] パネル
+            <span class="close-admin" onclick="closeAdmin()">×</span>
+        </div>
+        <div class="admin-tabs">
+            <div class="admin-tab active" onclick="switchAdminTab('tab-prob', event)">確率操作＆付与</div>
+            <div class="admin-tab" onclick="switchAdminTab('tab-luck', event)">ラック/バフ管理</div>
+        </div>
+        <div id="tab-prob" class="admin-tab-content active">
+            <div class="admin-row">
+                <span>お金追加 ($)</span>
+                <div>
+                    <input type="number" id="admin-add-money" value="1000" style="width:60px;">
+                    <button onclick="addAdminItem('money')">付与</button>
+                </div>
+            </div>
+            <div class="admin-row">
+                <span>基地にキャラ追加</span>
+                <div><button onclick="showAdminCharList()">リストを開く</button></div>
+            </div>
+            <hr style="border-color: #00ffcc; margin: 15px 0; opacity: 0.5;">
+            <div style="text-align: center; margin-top: 15px;">
+                <label style="cursor: pointer; font-size: 1.1em; color: #00ffcc; font-weight: bold;">
+                    <input type="checkbox" id="admin-infinite" onchange="toggleInfinite(this.checked)"> 無限スピンモード
+                </label>
+            </div>
+        </div>
+        <div id="tab-luck" class="admin-tab-content">
+            <div class="admin-row">
+                <span style="color:#0f0;">ラック追加 (倍率/秒)</span>
+                <div>
+                    <input type="number" id="admin-luck-multi" value="1" step="0.1" min="1" style="width:40px;">
+                    <input type="number" id="admin-luck-time" value="60" placeholder="秒" style="width:40px;">
+                    <button onclick="updateLuck()">適用</button>
+                </div>
+            </div>
+            <hr style="border-color: #00ffcc; margin: 15px 0; opacity: 0.5;">
+            <div class="admin-row">
+                <span style="color:#ffcc00;">全体バフ発動</span>
+                <div>
+                    <select id="admin-mutation-type">
+                        <option value="thunder">雷バフ</option>
+                        <option value="water">ウォーターバフ</option>
+                    </select>
+                    <input type="number" id="admin-mutation-time" value="60" placeholder="秒" style="width:40px;">
+                    <button onclick="activateMutation()">発動</button>
+                </div>
+            </div>
+            <div class="admin-row">
+                <span style="color:#ffcc00;">基本バフ付与確率(%)</span>
+                <div>
+                    <input type="number" id="admin-prob-mutation" value="10" step="1" style="width:60px;">
+                    <button onclick="updateMutationProb()">適用</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- キャラクターデータ＆レア度設定 ---
+        const characters = [
+            { id: "kaminari", name: "Kaminari", img: "ゲーム-Photoroom.png", rarity: "ゴット", color: "#ff4500" },
+            { id: "pittsa_naito", name: "Pittsa Naito", img: "ピッツァナイト-Photoroom.png", rarity: "アンコモン", color: "#a8a8a8" },
+            { id: "suta_banana", name: "Sutā Banana", img: "スターバナナ-Photoroom.png", rarity: "シークレット", color: "#ff1493" },
+            { id: "sanda_doragon", name: "Sandā Doragon", img: "サンダードラゴン-Photoroom.png", rarity: "サンダー", color: "#e6e600" },
+            { id: "piritama_da_ze", name: "Piritama Dā Zē", img: "ぴりたまだーぜー-Photoroom.png", rarity: "レア", color: "#4287f5" },
+            { id: "sanda_pittsa", name: "Sandā Pittsa", img: "サンダーピッツァ-Photoroom.png", rarity: "サンダー", color: "#e6e600" },
+            { id: "potepote_burazazu", name: "Potepote Burazāzu", img: "ポテポテブラザーズ-Photoroom.png", rarity: "サンダー", color: "#e6e600" },
+            { id: "mane_mane_rabitto", name: "Manē Manē Rabitto", img: "マネーマネーラビット-Photoroom (1).png", rarity: "レジェンド", color: "#ff00ff" },
+            { id: "rakki_nikameni", name: "Rakkī Nikamenī", img: "ラッキーにかめにーに-Photoroom.png", rarity: "ゴット", color: "#ff4500" },
+            { id: "wota_cheri", name: "Wōta Cherī", img: "ウォータチェリー-Photoroom.png", rarity: "シークレット", color: "#ff1493" },
+            { id: "tomaho_erefanto", name: "Tomahō Erefanto", img: "トマホーエレファント-Photoroom_2.png", rarity: "サンダー", color: "#e6e600" },
+            { id: "pipi_kora", name: "Pīpī Kōra", img: "ピーピーコーラ-Photoroom_2.png", rarity: "レジェンド", color: "#ff00ff" },
+            { id: "pi_poteto_robotto", name: "Pī Poteto Robotto", img: "ピーポテトロボット-Photoroom_2.png", rarity: "サンダー", color: "#e6e600" },
+            { id: "rosu_poteto", name: "Rosu Potēto", img: "ロスポテート-Photoroom_2.png", rarity: "シークレット", color: "#ff1493" },
+            { id: "poteto_pi_poteto", name: "Potēto Pī Poteto", img: "ポテートピーポテート-Photoroom_2.png", rarity: "レア", color: "#4287f5" }
+        ];
+
+        // お金の単位フォーマット関数
+        function formatMoney(value) {
+            if (value >= 1e15) return (value / 1e15).toFixed(1).replace(/\.0$/, '') + 'Qa';
+            if (value >= 1e12) return (value / 1e12).toFixed(1).replace(/\.0$/, '') + 'T';
+            if (value >= 1e9) return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+            if (value >= 1e6) return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+            if (value >= 1e3) return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+            return value.toString();
+        }
+
+        // --- 設定・多言語(i18n) 辞書 ---
+        let currentLang = localStorage.getItem('appLang') || 'ja';
+        let isSoundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+        let isBgmEnabled = localStorage.getItem('bgmEnabled') !== 'false';
+
+        // P2P通信用の6桁の基本IDを生成・取得
+        let savedUserId = localStorage.getItem('myUserId');
+        if (!savedUserId || !/^\d{6}$/.test(savedUserId)) {
+            savedUserId = Math.floor(100000 + Math.random() * 900000).toString();
+            localStorage.setItem('myUserId', savedUserId);
+        }
+        let myUserId = savedUserId;
+
+        // P2P通信(PeerJS)変数
+        let peer = null;
+        let activeConn = null;
+        let mySelectedTradeIndices = []; // 複数選択用
+        let peerSelectedTradeChars = []; // 相手から送られてくる配列
+        let myTradeOk = false;
+        let peerTradeOk = false;
+        let currentRoomCode = null; // 4桁の部屋番号
+        let isHost = false;
+
+        // BGM自動再生ロジック
+        document.addEventListener('click', function initBgm() {
+            if (isBgmEnabled) {
+                const bgm = document.getElementById('bgm-audio');
+                if (bgm.paused) bgm.play().catch(()=>{});
+            }
+            document.removeEventListener('click', initBgm);
+        }, {once: true});
+
+        const i18n = {
+            ja: {
+                menuTitle: "システムメニュー",
+                baseBtn: "基地",
+                settingsBtn: "設定",
+                backBtn: "戻る",
+                baseTitle: "基地 - KAMINARI BASE",
+                emptyBase: "何も設置されていません",
+                sellBtn: "売る",
+                clearAllBtn: "すべて削除（一括売却）",
+                confirmClearAll: "基地のキャラクターを全て売却し、お金を獲得しますか？",
+                settingsTitle: "システム設定",
+                langLabel: "表示言語 / Language",
+                soundLabel: "効果音 (SE)",
+                bgmLabel: "BGM (音楽)",
+                soundOn: "有効 (ON)",
+                soundOff: "無効 (OFF)",
+                probTitle: "ルーレット確率一覧",
+                luckActive: "[ラックUP中]",
+                itemHeader: "景品名",
+                probHeader: "確率",
+                lblCoin: "コイン",
+                lblMoney: "お金",
+                readyMsg: "[ システム準備完了 ]",
+                processingMsg: "[ 処理中... ]",
+                fullBaseAlert: "⚠ 警告：基地がいっぱいです！ルーレットを引く前にキャラクターを売却するか、リバースして枠を広げてください。",
+                notEnoughMoney: "お金が足りません（150$必要です）。",
+                notEnoughMoney10: "お金が足りません（1500$必要です）。",
+                mutationThunder: "雷バフ",
+                mutationWater: "ウォーターバフ",
+                spinBtn: "回す (150$)",
+                probBtn: "確率を見る",
+                fastSpinOff: "高速スピン: OFF",
+                fastSpinOn: "高速スピン: ON"
+            },
+            en: {
+                menuTitle: "SYSTEM MENU",
+                baseBtn: "BASE",
+                settingsBtn: "SETTINGS",
+                backBtn: "BACK",
+                baseTitle: "BASE - CHARACTER BASE",
+                emptyBase: "No characters placed",
+                sellBtn: "SELL",
+                clearAllBtn: "DELETE ALL (SELL ALL)",
+                confirmClearAll: "Are you sure you want to sell ALL characters for money?",
+                settingsTitle: "SYSTEM SETTINGS",
+                langLabel: "Language / 言語",
+                soundLabel: "Sound Effects (SE)",
+                bgmLabel: "Background Music (BGM)",
+                soundOn: "ON",
+                soundOff: "OFF",
+                probTitle: "ROULETTE PROBABILITIES",
+                luckActive: "[LUCK UP]",
+                itemHeader: "Item Name",
+                probHeader: "Probability",
+                lblCoin: "Coins",
+                lblMoney: "Money",
+                readyMsg: "[ SYSTEM READY ]",
+                processingMsg: "[ PROCESSING... ]",
+                fullBaseAlert: "⚠ WARNING: Base is full! Please sell characters or Rebirth to expand capacity.",
+                notEnoughMoney: "Not enough money (150$ required).",
+                notEnoughMoney10: "Not enough money (1500$ required).",
+                mutationThunder: "Thunder Buff",
+                mutationWater: "Water Buff",
+                spinBtn: "SPIN (150$)",
+                probBtn: "VIEW PROBS",
+                fastSpinOff: "FAST SPIN: OFF",
+                fastSpinOn: "FAST SPIN: ON"
+            }
+        };
+
+        function t(key) {
+            return (i18n[currentLang] && i18n[currentLang][key]) ? i18n[currentLang][key] : key;
+        }
+
+        // --- P2P Network (PeerJS) 初期化 & 通信対応 ---
+        function setupPeer(customPeerId = null) {
+            if (peer) {
+                try { peer.destroy(); } catch(e){}
+            }
+            
+            const peerOptions = {
+                debug: 1,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' }
+                    ]
+                }
+            };
+
+            const targetId = customPeerId || myUserId;
+            peer = new Peer(targetId, peerOptions);
+
+            peer.on('open', (id) => {
+                console.log('Peer connected successfully with ID:', id);
+            });
+
+            peer.on('connection', (conn) => {
+                if (activeConn) {
+                    try {
+                        conn.send({ type: 'ROOM_FULL' });
+                        conn.close();
+                    } catch(e){}
+                    return;
+                }
+                activeConn = conn;
+                setupConnectionListeners(conn);
+                renderTradeUI();
+            });
+
+            peer.on('disconnected', () => {
+                if (peer && !peer.destroyed) {
+                    peer.reconnect();
+                }
+            });
+
+            peer.on('error', (err) => {
+                console.error("PeerJS Error:", err);
+                if (err.type === 'unavailable-id' && isHost) {
+                    createTradeRoom();
+                } else if (err.type === 'peer-unavailable') {
+                    resetTradeState();
+                    renderTradeUI();
+                }
+            });
+        }
+
+        function setupConnectionListeners(conn) {
+            conn.on('open', () => {
+                modal.style.display = 'block';
+                renderTradeUI();
+                if (mySelectedTradeIndices.length > 0) {
+                    conn.send({ type: 'SELECT_CHARS', chars: mySelectedTradeIndices.map(i => baseItems[i]) });
+                }
+            });
+
+            conn.on('data', (data) => {
+                if (!data) return;
+                if (data.type === 'ROOM_FULL') {
+                    resetTradeState();
+                    renderTradeUI();
+                } else if (data.type === 'SELECT_CHAR') {
+                    peerSelectedTradeChars = [data.charStr];
+                    peerTradeOk = false;
+                    renderTradeUI();
+                } else if (data.type === 'SELECT_CHARS') {
+                    peerSelectedTradeChars = data.chars || [];
+                    peerTradeOk = false;
+                    renderTradeUI();
+                } else if (data.type === 'TOGGLE_OK') {
+                    peerTradeOk = data.ok;
+                    renderTradeUI();
+                    checkAndExecuteTrade();
+                } else if (data.type === 'CANCEL') {
+                    resetTradeState();
+                    renderTradeUI();
+                }
+            });
+
+            conn.on('close', () => {
+                if (activeConn === conn) {
+                    resetTradeState();
+                    renderTradeUI();
+                }
+            });
+
+            conn.on('error', (err) => {
+                console.error("Connection error:", err);
+                if (activeConn === conn) {
+                    resetTradeState();
+                    renderTradeUI();
+                }
+            });
+        }
+
+        function resetTradeState() {
+            if (activeConn) {
+                try { activeConn.close(); } catch(e){}
+                activeConn = null;
+            }
+            mySelectedTradeIndices = [];
+            peerSelectedTradeChars = [];
+            myTradeOk = false;
+            peerTradeOk = false;
+            currentRoomCode = null;
+            isHost = false;
+        }
+
+        // --- Web Audio API 高品質サウンドジェネレーター ---
+        class CyberAudioSynthesizer {
+            constructor() { this.ctx = null; }
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+            }
+            playClick() {
+                if (!isSoundEnabled) return;
+                this.init(); if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.05);
+            }
+            playSpin() {
+                if (!isSoundEnabled) return;
+                this.init(); if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.08);
+            }
+            playJackpot() {
+                if (!isSoundEnabled) return;
+                this.init(); if (!this.ctx) return;
+                const notes = [440, 554.37, 659.25, 880, 1108.73, 1318.51, 1760];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.value = freq;
+                    const startTime = this.ctx.currentTime + idx * 0.06;
+                    gain.gain.setValueAtTime(0.25, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
+                    osc.connect(gain); gain.connect(this.ctx.destination);
+                    osc.start(startTime); osc.stop(startTime + 0.4);
+                });
+            }
+        }
+        const audioSynth = new CyberAudioSynthesizer();
+
+        // 状態保存変数
+        let coins = parseInt(localStorage.getItem('coins')) || 0;
+        let money = parseInt(localStorage.getItem('money')) || 500; 
+        let specialTickets = parseInt(localStorage.getItem('specialTickets')) || 0;
+        let rebirthCount = parseInt(localStorage.getItem('rebirthCount')) || 0;
+        
+        let unlockedCharacters = JSON.parse(localStorage.getItem('unlockedCharacters')) || {};
+        let baseItems = JSON.parse(localStorage.getItem('baseItems')) || [];
+
+        // リバース費用（1〜10段階）
+        const rebirthCosts = [1000, 10000, 25000, 50000, 100000, 150000, 200000, 250000, 300000, 350000];
+
+        // 基地の最大設置数を取得（リバース段階ごとに＋2枠増加）
+        function getMaxBaseCapacity() {
+            return 10 + (rebirthCount * 2);
+        }
+
+        let baseProbSpecial = 40.0;
+        let luckMultiplier = 1.0;
+        let mutationProb = 10.0; 
+        
+        let luckEndTime = 0;
+        let activeMutations = { thunder: 0, water: 0 };
+
+        let currentRotation = 0; 
+        let isSpinning = false;  
+        let isInfiniteSpin = false; 
+        let isFastSpin = false; 
+        let isAdminUnlocked = false;
+
+        function getRemainingTimeText(endTime) {
+            if (endTime === -1 || endTime === 0) return "∞";
+            const diff = Math.max(0, endTime - Date.now());
+            const sec = Math.ceil(diff / 1000);
+            if (sec > 60) return Math.floor(sec/60) + "分" + (sec%60) + "秒";
+            return sec + "秒";
+        }
+
+        // キャラクター抽選ロジック
+        function rollCharacter(guaranteedRarity = null) {
+            let pool = characters;
+            if (guaranteedRarity) {
+                pool = characters.filter(c => c.rarity === guaranteedRarity);
+                if(pool.length > 0) return pool[Math.floor(Math.random() * pool.length)];
+            }
+            
+            const rand = Math.random() * 100;
+            if (rand < 0.5) {
+                const thunders = characters.filter(c => c.rarity === 'サンダー');
+                return thunders[Math.floor(Math.random() * thunders.length)];
+            }
+            if (rand < 2.0) {
+                const secrets = characters.filter(c => c.rarity === 'シークレット');
+                return secrets[Math.floor(Math.random() * secrets.length)];
+            }
+            if (rand < 6.0) {
+                const gods = characters.filter(c => c.rarity === 'ゴット');
+                return gods[Math.floor(Math.random() * gods.length)];
+            }
+            if (rand < 21.0) {
+                const legends = characters.filter(c => c.rarity === 'レジェンド');
+                return legends[Math.floor(Math.random() * legends.length)];
+            }
+            if (rand < 51.0) {
+                const rares = characters.filter(c => c.rarity === 'レア');
+                return rares[Math.floor(Math.random() * rares.length)];
+            }
+            const uncommons = characters.filter(c => c.rarity === 'アンコモン');
+            return uncommons[Math.floor(Math.random() * uncommons.length)];
+        }
+
+        function rollMutation() {
+            const rand = Math.random() * 100;
+            if (rand < 0.1) return 'rainbow';
+            if (rand < 1) return 'diamond'; 
+            if (rand < 6) return 'gold';    
+            return 'normal';
+        }
+
+        const updateUI = () => {
+            document.getElementById('money-val').innerText = formatMoney(money);
+            document.getElementById('special-ticket-count').innerText = specialTickets;
+            
+            document.getElementById('lbl-money-count').innerText = t('lblMoney');
+            document.getElementById('spin-btn').innerText = t('spinBtn');
+            document.getElementById('prob-btn').innerText = t('probBtn');
+            
+            const fastBtn = document.getElementById('fast-spin-btn');
+            fastBtn.innerText = isFastSpin ? t('fastSpinOn') : t('fastSpinOff');
+        };
+
+        const saveState = () => {
+            localStorage.setItem('coins', coins); 
+            localStorage.setItem('money', money);
+            localStorage.setItem('specialTickets', specialTickets);
+            localStorage.setItem('rebirthCount', rebirthCount);
+            localStorage.setItem('baseItems', JSON.stringify(baseItems));
+            localStorage.setItem('unlockedCharacters', JSON.stringify(unlockedCharacters));
+            localStorage.setItem('appLang', currentLang);
+            localStorage.setItem('soundEnabled', isSoundEnabled);
+            localStorage.setItem('bgmEnabled', isBgmEnabled);
+            localStorage.setItem('myUserId', myUserId);
+        };
+
+        function toggleFastSpin() {
+            audioSynth.playClick();
+            isFastSpin = !isFastSpin;
+            updateUI();
+            const wheel = document.getElementById('wheel');
+            wheel.style.transition = isFastSpin ? 'transform 1s cubic-bezier(0.1, 0.8, 0.1, 1)' : 'transform 4s cubic-bezier(0.1, 0.8, 0.1, 1)';
+        }
+
+        const handleNormalSpin = () => {
+            audioSynth.playClick();
+            if (money < 150 && !isInfiniteSpin) {
+                alert(t('notEnoughMoney'));
+                return;
+            }
+            if (baseItems.length >= getMaxBaseCapacity()) {
+                alert(t('fullBaseAlert'));
+                return;
+            }
+            if (isSpinning) return;
+
+            if (!isInfiniteSpin) {
+                money -= 150;
+            }
+            updateUI();
+            processSpin();
+        };
+
+        const processSpin = () => {
+            isSpinning = true;
+            document.getElementById('spin-btn').disabled = true;
+            const spin10Btn = document.getElementById('spin10-btn');
+            if (spin10Btn) spin10Btn.disabled = true;
+            
+            const resultElement = document.getElementById('roulette-result');
+            resultElement.innerText = t('processingMsg');
+            resultElement.style.color = "#0ff";
+
+            audioSynth.playSpin();
+            if (isSoundEnabled) {
+                const spinSound = document.getElementById('spin-sound');
+                spinSound.currentTime = 0;
+                spinSound.play().catch(() => {});
+            }
+
+            const rand = Math.random() * 100;
+            let targetAngle = 0;
+            let resultType = "";
+
+            if (rand < 0.005) {
+                resultType = "サンダー";
+                targetAngle = 360 - 225;
+            } else if (rand < 1.005) {
+                resultType = "シークレット";
+                targetAngle = 360 - 240;
+            } else if (rand < 40) {
+                resultType = "アンコモン";
+                targetAngle = Math.random() > 0.5 ? 360 - 22.5 : 360 - 305;
+            } else if (rand < 45) {
+                resultType = "ゴット";
+                targetAngle = 360 - 67.5;
+            } else if (rand < 60) {
+                resultType = "レジェンド";
+                targetAngle = 360 - 112.5;
+            } else {
+                resultType = "gacha";
+                targetAngle = 360 - 157.5;
+            }
+
+            const randomOffset = (Math.random() * 10) - 5;
+            targetAngle += randomOffset;
+
+            const currentDeg = currentRotation % 360;
+            let extraRotation = targetAngle - currentDeg;
+            if (extraRotation < 0) extraRotation += 360;
+            
+            currentRotation += (1800 + extraRotation);
+            document.getElementById('wheel').style.transform = `rotate(${currentRotation}deg)`;
+
+            const spinDuration = isFastSpin ? 1000 : 4000;
+
+            setTimeout(() => {
+                let rolledChar;
+                if (resultType === "gacha") rolledChar = rollCharacter();
+                else rolledChar = rollCharacter(resultType);
+
+                let mutation = rollMutation();
+                let storeId = rolledChar.id + ":" + mutation + ":none";
+
+                baseItems.push(storeId);
+                unlockedCharacters[rolledChar.id + ":" + mutation] = true;
+                
+                money += 100;
+                
+                let mutText = "";
+                if (mutation === 'gold') mutText = "【GOLD変異】";
+                if (mutation === 'diamond') mutText = "【DIAMOND変異】";
+                if (mutation === 'rainbow') mutText = "【RAINBOW変異】";
+
+                resultElement.innerText = `>> 獲得: ${rolledChar.name} [${rolledChar.rarity}] ${mutText} (+$${formatMoney(100)}) <<`;
+                resultElement.style.color = rolledChar.color || "#ff00ff";
+                
+                audioSynth.playJackpot();
+                if (isSoundEnabled) {
+                    const audio = document.getElementById('kaminari-audio');
+                    audio.currentTime = 0;
+                    audio.play().catch(() => {});
+                }
+
+                saveState();
+                isSpinning = false;
+                document.getElementById('spin-btn').disabled = false;
+                if (spin10Btn) spin10Btn.disabled = false;
+                updateUI();
+            }, spinDuration);
+        };
+
+        // --- 10連スピン機能 ---
+        const handle10Spin = () => {
+            audioSynth.playClick();
+            const cost = 1500;
+            const maxCap = getMaxBaseCapacity();
+
+            if (money < cost && !isInfiniteSpin) {
+                alert(t('notEnoughMoney10'));
+                return;
+            }
+            if (baseItems.length + 10 > maxCap) {
+                alert(`⚠ 警告：基地がいっぱいです！（10連を引くには基地に10個分の空きが必要です。現在の最大枠: ${maxCap}）`);
+                return;
+            }
+            if (isSpinning) return;
+
+            if (!isInfiniteSpin) {
+                money -= cost;
+            }
+            updateUI();
+
+            isSpinning = true;
+            document.getElementById('spin-btn').disabled = true;
+            const spin10Btn = document.getElementById('spin10-btn');
+            if (spin10Btn) spin10Btn.disabled = true;
+
+            const resultElement = document.getElementById('roulette-result');
+            resultElement.innerText = t('processingMsg') + " (10連回転中...)";
+            resultElement.style.color = "#ff00ff";
+
+            audioSynth.playSpin();
+            if (isSoundEnabled) {
+                const spinSound = document.getElementById('spin-sound');
+                spinSound.currentTime = 0;
+                spinSound.play().catch(() => {});
+            }
+
+            // 10連演出用ホイールスピン
+            currentRotation += 1800 + Math.floor(Math.random() * 360);
+            document.getElementById('wheel').style.transform = `rotate(${currentRotation}deg)`;
+
+            const spinDuration = isFastSpin ? 1000 : 4000;
+
+            setTimeout(() => {
+                let obtainedList = [];
+                for (let i = 0; i < 10; i++) {
+                    const rand = Math.random() * 100;
+                    let resultType = "";
+                    if (rand < 0.005) resultType = "サンダー";
+                    else if (rand < 1.005) resultType = "シークレット";
+                    else if (rand < 40) resultType = "アンコモン";
+                    else if (rand < 45) resultType = "ゴット";
+                    else if (rand < 60) resultType = "レジェンド";
+                    else resultType = "gacha";
+
+                    let rolledChar = (resultType === "gacha") ? rollCharacter() : rollCharacter(resultType);
+                    let mutation = rollMutation();
+                    let storeId = rolledChar.id + ":" + mutation + ":none";
+
+                    baseItems.push(storeId);
+                    unlockedCharacters[rolledChar.id + ":" + mutation] = true;
+                    money += 100;
+                    obtainedList.push({ char: rolledChar, mutation: mutation });
+                }
+
+                resultElement.innerText = `>> 10連ガチャ完了！ 10体のキャラクターを獲得！ <<`;
+                resultElement.style.color = "#00ff66";
+
+                audioSynth.playJackpot();
+                if (isSoundEnabled) {
+                    const audio = document.getElementById('kaminari-audio');
+                    audio.currentTime = 0;
+                    audio.play().catch(() => {});
+                }
+
+                saveState();
+                isSpinning = false;
+                document.getElementById('spin-btn').disabled = false;
+                if (spin10Btn) spin10Btn.disabled = false;
+                updateUI();
+
+                show10ResultModal(obtainedList);
+            }, spinDuration);
+        };
+
+        function show10ResultModal(list) {
+            modal.style.display = 'block';
+            let itemsHtml = '<div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; margin:15px 0; max-height:400px; overflow-y:auto; padding:5px;">';
+            list.forEach(item => {
+                let c = item.char;
+                let mut = item.mutation;
+                let mutText = "";
+                if (mut === 'gold') mutText = "<span style='color:gold; font-size:0.7em;'>【GOLD】</span>";
+                if (mut === 'diamond') mutText = "<span style='color:cyan; font-size:0.7em;'>【DIAMOND】</span>";
+                if (mut === 'rainbow') mutText = "<span style='color:#ff00ff; font-size:0.7em;'>【RAINBOW】</span>";
+
+                itemsHtml += `
+                    <div style="background:rgba(0,0,0,0.7); padding:10px; border:1px solid ${c.color}; border-radius:6px; text-align:center;">
+                        <img src="${c.img}" style="width:55px; height:55px; object-fit:contain; filter:drop-shadow(0 0 5px ${c.color});">
+                        <div style="font-size:0.8em; color:${c.color}; font-weight:bold; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${c.name}</div>
+                        <div style="font-size:0.7em; color:#ddd; margin-top:2px;">レア度: ${c.rarity}</div>
+                        ${mutText}
+                    </div>
+                `;
+            });
+            itemsHtml += '</div>';
+
+            modalBody.innerHTML = `
+                <h2 style="color:#00ff66;">🎉 10連ガチャ獲得結果</h2>
+                ${itemsHtml}
+                <button onclick="closeModal()" style="font-size:0.9em; padding:10px 24px; border-color:#00ff66; color:#00ff66;">確認</button>
+            `;
+        }
+
+        const updateStatusEffects = () => {
+            const now = Date.now();
+            const kaminariIcon = document.getElementById('kaminari-icon');
+            
+            const luckUI = document.getElementById('luck-display-container');
+            if (luckMultiplier > 1.0) {
+                if (luckEndTime > 0 && now > luckEndTime) {
+                    luckMultiplier = 1.0;
+                    luckEndTime = 0;
+                    luckUI.style.display = 'none';
+                } else {
+                    document.getElementById('luck-multiplier-val').innerText = luckMultiplier.toFixed(1);
+                    document.getElementById('luck-time-val').innerText = "残り: " + getRemainingTimeText(luckEndTime);
+                    luckUI.style.display = 'flex';
+                }
+            } else { luckUI.style.display = 'none'; }
+
+            const mutUI = document.getElementById('mutation-display-container');
+            let mutHtml = '';
+            let isMutActive = false;
+
+            if (activeMutations.thunder !== 0) {
+                if (activeMutations.thunder > 0 && now > activeMutations.thunder) {
+                    activeMutations.thunder = 0;
+                    kaminariIcon.classList.remove('mutation-thunder');
+                } else {
+                    let thunderTimeStr = getRemainingTimeText(activeMutations.thunder);
+                    mutHtml += `<div style="display:flex; align-items:center; justify-content:flex-end;"><div class="status-text" style="color:#ffd700;font-size:1.1em;line-height:1.1;text-align:right;">${t('mutationThunder')}<br><span style="font-size:0.6em;color:#fff;text-shadow:none;">残り: ${thunderTimeStr}</span></div></div>`;
+                    kaminariIcon.classList.add('mutation-thunder');
+                    isMutActive = true;
+                }
+            } else { kaminariIcon.classList.remove('mutation-thunder'); }
+
+            if (activeMutations.water !== 0) {
+                if (activeMutations.water > 0 && now > activeMutations.water) {
+                    activeMutations.water = 0;
+                    kaminariIcon.classList.remove('mutation-water');
+                } else {
+                    let waterTimeStr = getRemainingTimeText(activeMutations.water);
+                    mutHtml += `<div style="display:flex; align-items:center; justify-content:flex-end;"><div class="status-text" style="color:#00bfff;font-size:1.1em;line-height:1.1;text-align:right;">${t('mutationWater')}<br><span style="font-size:0.6em;color:#fff;text-shadow:none;">残り: ${waterTimeStr}</span></div></div>`;
+                    kaminariIcon.classList.add('mutation-water');
+                    isMutActive = true;
+                }
+            } else { kaminariIcon.classList.remove('mutation-water'); }
+
+            if (isMutActive) {
+                mutUI.innerHTML = mutHtml;
+                mutUI.style.display = 'flex';
+            } else {
+                mutUI.style.display = 'none';
+                mutUI.innerHTML = '';
+            }
+        };
+
+        document.getElementById('spin-btn').addEventListener('click', handleNormalSpin);
+
+        // トレード画面制御（1対1部屋作成・参加機能）
+        function openTradeMenu() {
+            audioSynth.playClick();
+            modal.style.display = 'block';
+            renderTradeUI();
+        }
+
+        function createTradeRoom() {
+            audioSynth.playClick();
+            resetTradeState();
+            currentRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            isHost = true;
+            setupPeer('trade-room-' + currentRoomCode);
+            renderTradeUI();
+        }
+
+        function joinTradeRoom() {
+            audioSynth.playClick();
+            const inputEl = document.getElementById('join-room-id');
+            if (!inputEl) return;
+            const code = inputEl.value.trim();
+            if (!/^\d{4}$/.test(code)) {
+                return;
+            }
+
+            resetTradeState();
+            currentRoomCode = code;
+            isHost = false;
+
+            const guestPeerId = 'trade-guest-' + Math.floor(100000 + Math.random() * 900000).toString();
+            if (peer) { try { peer.destroy(); } catch(e){} }
+
+            const peerOptions = {
+                debug: 1,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' }
+                    ]
+                }
+            };
+            peer = new Peer(guestPeerId, peerOptions);
+
+            peer.on('open', () => {
+                const targetHostId = 'trade-room-' + currentRoomCode;
+                const conn = peer.connect(targetHostId, { reliable: true });
+                let connected = false;
+                const timeout = setTimeout(() => {
+                    if (!connected && !activeConn) {
+                        resetTradeState();
+                        renderTradeUI();
+                    }
+                }, 10000);
+
+                conn.on('open', () => {
+                    connected = true;
+                    clearTimeout(timeout);
+                    activeConn = conn;
+                    setupConnectionListeners(conn);
+                    renderTradeUI();
+                });
+                conn.on('error', (err) => {
+                    clearTimeout(timeout);
+                    resetTradeState();
+                    renderTradeUI();
+                });
+            });
+
+            peer.on('error', (err) => {
+                console.error("Guest Peer Error:", err);
+                resetTradeState();
+                renderTradeUI();
+            });
+            renderTradeUI();
+        }
+
+        function renderTradeUI() {
+            modal.style.display = 'block';
+
+            if (!activeConn) {
+                if (isHost && currentRoomCode) {
+                    modalBody.innerHTML = `
+                        <h2 style="color:var(--primary-pink);">P2P 1対1 トレードルーム</h2>
+                        <div style="background:rgba(0, 255, 255, 0.08); border:1px solid var(--primary-cyan); padding:20px; border-radius:8px; margin:20px 0;">
+                            <p style="font-size:1em; color:#fff; margin:0 0 10px;">あなたの部屋番号 (4桁)</p>
+                            <div style="font-size:2.8em; font-weight:bold; color:var(--primary-yellow); letter-spacing:6px; text-shadow:0 0 15px var(--primary-yellow); margin:10px 0;">
+                                ${currentRoomCode}
+                            </div>
+                            <p style="font-size:0.85em; color:var(--primary-cyan); margin-top:15px;" class="pulse-text">相手の参加を待っています... (一対一)</p>
+                        </div>
+                        <button onclick="cancelTrade()" style="font-size:0.85em; padding:8px 16px; border-color:#ff4444; color:#ff4444;">部屋を閉じる</button>
+                    `;
+                } else if (!isHost && currentRoomCode) {
+                    modalBody.innerHTML = `
+                        <h2 style="color:var(--primary-pink);">P2P 1対1 トレードルーム</h2>
+                        <div style="margin:25px 0;">
+                            <p style="font-size:1.1em; color:var(--primary-cyan);">部屋番号 [ <strong style="color:var(--primary-yellow);">${currentRoomCode}</strong> ] に接続中...</p>
+                            <p style="font-size:0.85em; color:#aaa;">ホストの応答を待っています。</p>
+                        </div>
+                        <button onclick="cancelTrade()" style="font-size:0.85em; padding:8px 16px; border-color:#ff4444; color:#ff4444;">キャンセル</button>
+                    `;
+                } else {
+                    modalBody.innerHTML = `
+                        <h2 style="color:var(--primary-pink);">P2P 1対1 キャラタートレード</h2>
+                        <div style="display:flex; flex-direction:column; gap:20px; margin:20px 0;">
+                            <div style="background:rgba(0,255,255,0.05); border:1px solid var(--primary-cyan); padding:18px; border-radius:8px;">
+                                <h3 style="margin:0 0 8px; color:var(--primary-cyan); font-size:1.1em;">① トレード部屋を作る (1対1)</h3>
+                                <p style="font-size:0.8em; color:#aaa; margin-bottom:12px;">ボタンを押して部屋を作り、表示された4桁の番号を相手に共有してください。</p>
+                                <button onclick="createTradeRoom()" style="border-color:var(--primary-cyan); color:var(--primary-cyan); font-weight:bold; width:100%; padding:12px;">トレード部屋作成</button>
+                            </div>
+                            <div style="background:rgba(255,0,255,0.05); border:1px solid var(--primary-pink); padding:18px; border-radius:8px;">
+                                <h3 style="margin:0 0 8px; color:var(--primary-pink); font-size:1.1em;">② 相手の部屋に入る</h3>
+                                <p style="font-size:0.8em; color:#aaa; margin-bottom:12px;">教えてもらった四桁の部屋番号を入力してください。</p>
+                                <div style="display:flex; gap:10px; justify-content:center; align-items:center;">
+                                    <input type="text" id="join-room-id" placeholder="四桁の番号" maxlength="4" style="background:#000; color:#fff; border:1px solid var(--primary-pink); padding:10px; font-size:1.2em; width:120px; text-align:center; border-radius:4px; letter-spacing:3px;">
+                                    <button onclick="joinTradeRoom()" style="border-color:var(--primary-pink); color:var(--primary-pink); font-weight:bold; padding:10px 18px;">部屋に参加</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="closeModal()" style="font-size:0.85em; padding:8px 16px;">閉じる</button>
+                    `;
+                }
+            } else {
+                // トレード接続中画面
+                let myCharHtml = "";
+                baseItems.forEach((itemStr, index) => {
+                    let parts = itemStr.split(':');
+                    let charObj = characters.find(c => c.id === parts[0]) || characters[0];
+                    let isSelected = mySelectedTradeIndices.includes(index);
+                    myCharHtml += `<img src="${charObj.img}" class="trade-char-item ${isSelected ? 'selected' : ''}" onclick="selectTradeChar(${index})" title="${charObj.name}">`;
+                });
+
+                let mySelectedDisplay = "";
+                if (mySelectedTradeIndices.length === 0) {
+                    mySelectedDisplay = "<p style='color:#777; margin:5px 0; font-size:0.9em;'>何も出さずにOK可能</p>";
+                } else {
+                    mySelectedTradeIndices.forEach(idx => {
+                        let parts = baseItems[idx].split(':');
+                        let charObj = characters.find(c => c.id === parts[0]) || characters[0];
+                        mySelectedDisplay += `<img src="${charObj.img}" style="width:45px; height:45px; object-fit:contain; margin:3px;" title="${charObj.name}">`;
+                    });
+                }
+
+                let peerSelectedDisplay = "";
+                if (peerSelectedTradeChars.length === 0) {
+                    peerSelectedDisplay = "<p style='color:#777; margin:5px 0; font-size:0.9em;'>相手はまだ選択していません</p>";
+                } else {
+                    peerSelectedTradeChars.forEach(charStr => {
+                        let parts = charStr.split(':');
+                        let charObj = characters.find(c => c.id === parts[0]) || characters[0];
+                        peerSelectedDisplay += `<img src="${charObj.img}" style="width:45px; height:45px; object-fit:contain; margin:3px;" title="${charObj.name}">`;
+                    });
+                }
+
+                let okBtnStateClass = myTradeOk ? 'active-ok' : '';
+                let okBtnText = myTradeOk ? '✔ OK 完了 (解除する)' : 'OK ボタンを押す';
+
+                modalBody.innerHTML = `
+                    <h2 style="color:var(--primary-pink); margin-bottom:5px;">P2P 1対1 トレードルーム</h2>
+                    <p style="font-size:0.85em; color:var(--primary-green); margin-top:0;">部屋番号: <strong style="color:var(--primary-yellow); font-size:1.1em;">${currentRoomCode || '---'}</strong> (一対一通信中)</p>
+                    <div class="trade-box">
+                        <div class="trade-slot trade-slot-left">
+                            <h4 style="margin:0 0 5px; color:var(--primary-cyan);">【あなた】(左側)</h4>
+                            <div class="trade-slot-display">${mySelectedDisplay}</div>
+                            <div class="trade-char-select">
+                                ${myCharHtml || '<span style="font-size:0.7em; color:#777;">基地にキャラがいません</span>'}
+                            </div>
+                            <button class="trade-ok-btn ${okBtnStateClass}" onclick="toggleMyOk()">
+                                ${okBtnText}
+                            </button>
+                        </div>
+                        <div class="trade-slot">
+                            <h4 style="margin:0 0 5px; color:var(--primary-pink);">【相手】(右側)</h4>
+                            <div class="trade-slot-display">${peerSelectedDisplay}</div>
+                            <div style="margin-top:auto; font-weight:bold; color:${peerTradeOk ? 'var(--primary-green)' : '#777'}; font-size:1.1em; padding:10px;">
+                                ${peerTradeOk ? '✔ 相手: OK済み' : '相手: 準備中...'}
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <button onclick="cancelTrade()" style="border-color:#ff4444; color:#ff4444; font-size:0.85em; padding:8px 16px;">トレード中止（部屋を出る）</button>
+                `;
+            }
+        }
+
+        function selectTradeChar(index) {
+            audioSynth.playClick();
+            const pos = mySelectedTradeIndices.indexOf(index);
+            if (pos > -1) {
+                mySelectedTradeIndices.splice(pos, 1);
+            } else {
+                mySelectedTradeIndices.push(index);
+            }
+            myTradeOk = false;
+            if (activeConn) {
+                activeConn.send({ type: 'SELECT_CHARS', chars: mySelectedTradeIndices.map(i => baseItems[i]) });
+            }
+            renderTradeUI();
+        }
+
+        function toggleMyOk() {
+            audioSynth.playClick();
+            myTradeOk = !myTradeOk;
+            if (activeConn) {
+                activeConn.send({ type: 'TOGGLE_OK', ok: myTradeOk });
+            }
+            renderTradeUI();
+            checkAndExecuteTrade();
+        }
+
+        function checkAndExecuteTrade() {
+            if (myTradeOk && peerTradeOk && activeConn) {
+                let maxCap = getMaxBaseCapacity();
+                let newTotal = baseItems.length - mySelectedTradeIndices.length + peerSelectedTradeChars.length;
+                if (newTotal > maxCap) {
+                    myTradeOk = false;
+                    peerTradeOk = false;
+                    activeConn.send({ type: 'TOGGLE_OK', ok: false });
+                    renderTradeUI();
+                    return;
+                }
+
+                setTimeout(() => {
+                    // 自分が出すキャラを削除（インデックスがずれないよう降順で処理）
+                    mySelectedTradeIndices.sort((a,b) => b - a).forEach(idx => {
+                        baseItems.splice(idx, 1);
+                    });
+
+                    // 相手からもらったキャラを追加
+                    peerSelectedTradeChars.forEach(charStr => {
+                        baseItems.push(charStr);
+                        let pParts = charStr.split(':');
+                        unlockedCharacters[pParts[0] + ":" + (pParts[1] || 'normal')] = true;
+                    });
+
+                    saveState();
+                    updateUI();
+                    audioSynth.playJackpot();
+
+                    cancelTrade();
+                    closeModal();
+                }, 500);
+            }
+        }
+
+        function cancelTrade() {
+            audioSynth.playClick();
+            if (activeConn) {
+                try { activeConn.send({ type: 'CANCEL' }); } catch(e){}
+            }
+            resetTradeState();
+            setupPeer();
+            renderTradeUI();
+        }
+
+        // --- リバース機能 (最大10段階) ---
+        function openRebirthMenu() {
+            audioSynth.playClick();
+            modal.style.display = 'block';
+            
+            if (rebirthCount >= 10) {
+                modalBody.innerHTML = `
+                    <h2 style="color:var(--primary-yellow);">REBIRTH (リバース)</h2>
+                    <p style="color:#fff; font-size:1.2em;">あなたは既に限界 (10回) までリバースしています。<br>これ以上のリバースはできません。</p>
+                    <button onclick="closeModal()" style="margin-top:20px; padding:10px 20px;">閉じる</button>
+                `;
+                return;
+            }
+            
+            let cost = rebirthCosts[rebirthCount];
+            let canRebirth = money >= cost;
+            
+            modalBody.innerHTML = `
+                <h2 style="color:var(--primary-yellow);">REBIRTH (リバース)</h2>
+                <p style="color:#aaa; font-size:0.95em; line-height:1.5;">リバースを実行すると、必要なお金（$${formatMoney(cost)}）のみ消費され、<strong style="color:#0f0;">キャラクターは保持されたまま</strong><br>基地に配置したキャラクターの<strong style="color:#0f0;">「毎秒のお金稼ぎ効率」と「基地の最大所持枠」が永続的に大幅アップ</strong>します！</p>
+                
+                <div style="margin:20px 0; padding:20px; border:2px solid ${canRebirth ? 'var(--primary-yellow)' : '#555'}; background:rgba(0,0,0,0.5); border-radius:8px;">
+                    <h3 style="margin-top:0; color:var(--primary-yellow);">次のリバース: 第 ${rebirthCount + 1} 段階</h3>
+                    <p style="font-size:1.4em; color:${canRebirth ? '#0f0' : '#f00'}; font-weight:bold;">必要な費用: $${formatMoney(cost)}</p>
+                    <p style="color:#fff; font-size:1.1em;">現在のお金: $${formatMoney(money)}</p>
+                    <p style="color:var(--primary-cyan); font-size:0.95em;">リバース後の基地容量: <strong style="color:#0f0;">${10 + (rebirthCount + 1) * 2}枠</strong> (現在: ${getMaxBaseCapacity()}枠)</p>
+                </div>
+                
+                <button onclick="executeRebirth()" ${!canRebirth ? 'disabled' : ''} style="font-size:1.2em; padding:12px 30px; border-color:var(--primary-yellow); color:var(--primary-yellow); margin-right:10px;">
+                    リバースを実行する
+                </button>
+                <button onclick="closeModal()" style="font-size:1em; padding:12px 20px;">キャンセル</button>
+            `;
+        }
+
+        function executeRebirth() {
+            let cost = rebirthCosts[rebirthCount];
+            if (money >= cost && rebirthCount < 10) {
+                audioSynth.playJackpot();
+                money -= cost;
+                rebirthCount++;
+                saveState();
+                updateUI();
+                openRebirthMenu();
+            }
+        }
+
+        // --- 自動お金稼ぎループ ---
+        setInterval(() => {
+            let income = 0;
+            if (baseItems.length > 0) {
+                baseItems.forEach(itemStr => {
+                    let parts = itemStr.split(':');
+                    let charId = parts[0];
+                    let charInfo = characters.find(c => c.id === charId) || characters[0];
+                    
+                    let baseIncome = 1;
+                    if (charInfo.rarity === 'レア') baseIncome = 2;
+                    else if (charInfo.rarity === 'レジェンド') baseIncome = 5;
+                    else if (charInfo.rarity === 'ゴット') baseIncome = 10;
+                    else if (charInfo.rarity === 'シークレット') baseIncome = 50;
+                    else if (charInfo.rarity === 'サンダー') baseIncome = 100;
+                    
+                    let mutType = parts[1] || 'normal';
+                    if (mutType === 'gold') baseIncome *= 2;
+                    if (mutType === 'diamond') baseIncome *= 5;
+                    if (mutType === 'rainbow') baseIncome *= 20;
+                    
+                    income += baseIncome;
+                });
+                
+                // リバースボーナス (1回につき +50%)
+                income = Math.floor(income * (1 + (rebirthCount * 0.5)));
+                money += income;
+            }
+            
+            document.getElementById('money-val').innerText = formatMoney(money);
+            
+            const incomeEl = document.getElementById('income-val');
+            if (incomeEl) {
+                if (income > 0) {
+                    incomeEl.innerText = `(+${formatMoney(income)}/s)`;
+                } else {
+                    incomeEl.innerText = "";
+                }
+            }
+        }, 1000);
+
+        updateUI();
+        updateStatusEffects();
+        setInterval(updateStatusEffects, 1000);
+        setupPeer();
+
+        const modal = document.getElementById('main-modal');
+        const modalBody = document.getElementById('modal-body');
+
+        let secretBuffer = "";
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'select') return;
+
+            if (e.key.toLowerCase() === 'm') {
+                if (modal.style.display === 'block') closeModal();
+                else openMenu();
+            }
+
+            if (isAdminUnlocked && e.key.toLowerCase() === 'k') {
+                const adminPanel = document.getElementById('admin-panel');
+                adminPanel.style.display = adminPanel.style.display === 'block' ? 'none' : 'block';
+            }
+
+            secretBuffer += e.key;
+            if (secretBuffer.length > 10) secretBuffer = secretBuffer.slice(-10);
+            if (secretBuffer.includes("140923")) {
+                isAdminUnlocked = true;
+                document.getElementById('admin-panel').style.display = 'block';
+                secretBuffer = ""; 
+            }
+        });
+
+        function closeModal() {
+            audioSynth.playClick();
+            if (activeConn || currentRoomCode) {
+                cancelTrade();
+            }
+            modal.style.display = 'none';
+        }
+
+        // インデックス画面 (サンダーをシークレットの上に修正)
+        function showIndexMenu(viewType = 'normal') {
+            audioSynth.playClick();
+            modal.style.display = 'block';
+            
+            let tabsHtml = `
+                <div class="index-tabs" style="display:flex; justify-content:center; margin-bottom:15px; flex-wrap:wrap; gap:5px;">
+                    <button onclick="showIndexMenu('normal')" style="${viewType==='normal' ? 'background:var(--primary-cyan); color:#000;' : ''}">ノーマル</button>
+                    <button onclick="showIndexMenu('gold')" style="border-color:gold; color:gold; ${viewType==='gold' ? 'background:gold; color:#000;' : ''}">ゴールド</button>
+                    <button onclick="showIndexMenu('diamond')" style="border-color:cyan; color:cyan; ${viewType==='diamond' ? 'background:cyan; color:#000;' : ''}">ダイヤモンド</button>
+                    <button onclick="showIndexMenu('rainbow')" style="border-color:#ff00ff; color:#ff00ff; ${viewType==='rainbow' ? 'background:linear-gradient(90deg, red, lime, blue); color:#fff; border:none;' : ''}">レインボー</button>
+                </div>
+            `;
+
+            let gridHtml = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:20px; max-height:450px; overflow-y:auto; padding:10px;">';
+
+            const rarityWeights = { 'アンコモン': 1, 'レア': 2, 'レジェンド': 3, 'ゴット': 4, 'シークレット': 5, 'サンダー': 6 };
+            let sortedCharacters = [...characters].sort((a, b) => (rarityWeights[a.rarity] || 99) - (rarityWeights[b.rarity] || 99));
+
+            sortedCharacters.forEach(c => {
+                const storeId = c.id + ":" + viewType;
+                const isUnlocked = unlockedCharacters[storeId] || (viewType === 'normal' && unlockedCharacters[c.id]);
+
+                let extraClass = "";
+                if(viewType === 'gold') extraClass = "filter-gold";
+                if(viewType === 'diamond') extraClass = "filter-diamond";
+                if(viewType === 'rainbow') extraClass = "filter-rainbow";
+
+                let imgStyle = isUnlocked ? `width:120px; height:120px; filter:drop-shadow(0 0 10px ${c.color});` : "width:120px; height:120px; filter:brightness(0) opacity(0.3);";
+                let statusText = isUnlocked ? "<span style='color:#0f0; font-size:1em; font-weight:bold;'>[ 取得済 ]</span>" : "<span style='color:#f00; font-size:1em;'>[ 未取得 ]</span>";
+                let titleText = isUnlocked ? c.name : "???";
+
+                gridHtml += `
+                    <div style="background:rgba(0,0,0,0.6); padding: 15px; border: 1px solid ${isUnlocked ? c.color : '#333'}; border-radius:8px; text-align:center;">
+                        <img src="${c.img}" alt="${c.id}" class="${isUnlocked ? extraClass : ''}" style="${imgStyle} transition:all 0.5s; object-fit:contain;">
+                        <div style="color:${isUnlocked ? c.color : '#666'}; margin: 10px 0 5px; font-size:1.1em; font-weight:bold; word-wrap:break-word;">${titleText}</div>
+                        <div style="color:#ddd; font-size:0.9em; margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px;">${c.rarity}</div>
+                        ${statusText}
+                    </div>
+                `;
+            });
+            gridHtml += '</div>';
+
+            modalBody.innerHTML = `
+                <h2 style="color:#00ff66; text-transform:uppercase; letter-spacing:2px; margin-bottom: 20px;">CHARACTER INDEX</h2>
+                ${tabsHtml}
+                ${gridHtml}
+                <br>
+                <button onclick="closeModal()" style="font-size:0.9em; padding:10px 20px; border-color:#00ff66; color:#00ff66;">閉じる</button>
+            `;
+        }
+
+        function getBaseBuffProbability() {
+            const now = Date.now();
+            const isAnyBuffActive = (activeMutations.thunder !== 0 && (activeMutations.thunder > now || activeMutations.thunder === -1)) || 
+                                    (activeMutations.water !== 0 && (activeMutations.water > now || activeMutations.water === -1));
+            return isAnyBuffActive ? mutationProb * 2.5 : mutationProb;
+        }
+
+        function showProbability() {
+            audioSynth.playClick();
+            modal.style.display = 'block';
+            let currentBuffProb = getBaseBuffProbability();
+            
+            const now = Date.now();
+            const isAnyBuffActive = (activeMutations.thunder !== 0 && (activeMutations.thunder > now || activeMutations.thunder === -1)) || 
+                                    (activeMutations.water !== 0 && (activeMutations.water > now || activeMutations.water === -1));
+            
+            let buffHtml = "";
+            if (isAnyBuffActive) {
+                buffHtml = `
+                    <div style="background: rgba(0, 255, 255, 0.1); padding: 10px; border: 1px solid var(--primary-cyan); margin-top: 10px;">
+                        <strong style="color: #00ffcc;">[基地バフ付与 成功確率]</strong><br>
+                        現在の設定値: ${currentBuffProb}% <span style="font-size:0.8em;">(全体バフ発動中は確率アップ！)</span>
+                    </div>
+                `;
+            }
+
+            modalBody.innerHTML = `
+                <h2>${t('probTitle')}</h2>
+                <div style="display:flex; justify-content:center; align-items: stretch; text-align:left; flex-direction:column;">
+                    <table class="prob-table" style="margin-top:0;">
+                        <tr><th>${t('itemHeader')}</th><th>${t('probHeader')}</th></tr>
+                        <tr><td style="color:#ff1493;">シークレット確定</td><td>1.0 %</td></tr>
+                        <tr><td style="color:#e6e600;">サンダー確定</td><td>0.005 %</td></tr>
+                        <tr><td style="color:#a8a8a8;">アンコモン確定</td><td>38.995 %</td></tr>
+                        <tr><td style="color:#ff00ff;">Character Gacha</td><td>40.0 %</td></tr>
+                        <tr><td style="color:#ff00ff;">レジェンド確定</td><td>15.0 %</td></tr>
+                        <tr><td style="color:#ff4500;">ゴット確定</td><td>5.0 %</td></tr>
+                    </table>
+                    <p style="font-size:0.8em; color:#fff;">※ガチャ内訳: 通常サンダーは超低確率(0.5%)</p>
+                    ${buffHtml}
+                </div>
+            `;
+        }
+
+        function openMenu() {
+            audioSynth.playClick();
+            modal.style.display = 'block';
+            modalBody.innerHTML = `
+                <h2>${t('menuTitle')}</h2>
+                <button onclick="showBaseMenu()" style="width:80%; margin-top:12px; border-color:#ff00ff; color:#ff00ff;">${t('baseBtn')}</button><br>
+                <button onclick="showSettingsMenu()" style="width:80%; margin-top:12px; border-color:#ffd700; color:#ffd700;">${t('settingsBtn')}</button>
+            `;
+        }
+
+        // --- 基地管理画面 (レア度表示対応) ---
+        function showBaseMenu() {
+            audioSynth.playClick();
+            let itemsHtml = "";
+
+            for(let i = 0; i < baseItems.length; i++) {
+                let itemStr = baseItems[i];
+                let parts = itemStr.split(':');
+                let charId = parts[0];
+                let mutType = parts[1] || 'normal';
+                let buffType = parts[2] || 'none';
+                
+                let charInfo = characters.find(c => c.id === charId) || characters[0];
+                
+                let extraClass = "";
+                if(mutType === 'gold') extraClass += " filter-gold";
+                if(mutType === 'diamond') extraClass += " filter-diamond";
+                if(mutType === 'rainbow') extraClass += " filter-rainbow";
+                if(buffType === 'thunder') extraClass += " filter-thunder";
+                if(buffType === 'water') extraClass += " filter-water";
+
+                itemsHtml += `
+                    <div class="base-item-wrapper" onclick="manageBaseCharacter(${i})">
+                        <img src="${charInfo.img}" class="base-item ${extraClass}" alt="${charInfo.name}" title="${charInfo.name}">
+                        <div style="font-size:0.85em; font-weight:bold; color:${charInfo.color || '#fff'}; margin-top:4px;">${charInfo.name}</div>
+                        <div class="base-item-rarity" style="color:${charInfo.color || 'var(--primary-cyan)'};">${charInfo.rarity}</div>
+                    </div>
+                `;
+            }
+
+            modalBody.innerHTML = `
+                <h2 style="color:#ff00ff;">${t('baseTitle')} ( ${baseItems.length} / ${getMaxBaseCapacity()} )</h2>
+                <div class="base-grid">
+                    ${itemsHtml || `<span style="color:#777; font-size:0.9em; align-self:center;">${t('emptyBase')}</span>`}
+                </div>
+                
+                <div style="margin-top: 15px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+                    ${baseItems.length > 0 ? `<button onclick="clearAllCharacters()" style="border-color:#ff4444; color:#ff4444; font-size:0.85em; padding:10px 15px;">${t('clearAllBtn')}</button>` : ''}
+                    <button onclick="openMenu()" style="font-size:0.85em; padding:10px 15px;">${t('backBtn')}</button>
+                </div>
+            `;
+        }
+
+        function manageBaseCharacter(index) {
+            audioSynth.playClick();
+            let itemStr = baseItems[index];
+            let parts = itemStr.split(':');
+            let charId = parts[0];
+            let mutType = parts[1] || 'normal';
+            let buffType = parts[2] || 'none';
+
+            let charInfo = characters.find(c => c.id === charId) || characters[0];
+            let sellPrice = 100;
+            if (charInfo.rarity === 'ゴット') sellPrice = 2000;
+            if (charInfo.rarity === 'レジェンド') sellPrice = 800;
+            if (charInfo.rarity === 'シークレット') sellPrice = 3000;
+            if (charInfo.rarity === 'サンダー') sellPrice = 5000;
+            
+            if (mutType === 'gold') sellPrice *= 3;
+            if (mutType === 'diamond') sellPrice *= 10;
+            if (mutType === 'rainbow') sellPrice *= 50;
+
+            let buffText = "<span style='color:#777;'>[ バフなし ]</span>";
+            if(buffType === 'thunder') buffText = "<span style='color:#e6e600; font-weight:bold;'>[ 雷バフ 発動中 ]</span>";
+            if(buffType === 'water') buffText = "<span style='color:#00bfff; font-weight:bold;'>[ ウォーターバフ 発動中 ]</span>";
+
+            let mutText = "";
+            if (mutType === 'gold') mutText = "<span style='color:gold;'>【GOLD】</span>";
+            if (mutType === 'diamond') mutText = "<span style='color:cyan;'>【DIAMOND】</span>";
+            if (mutType === 'rainbow') mutText = "<span style='color:#ff00ff;'>【RAINBOW】</span>";
+
+            let extraClass = "";
+            if(mutType === 'gold') extraClass += " filter-gold";
+            if(mutType === 'diamond') extraClass += " filter-diamond";
+            if(mutType === 'rainbow') extraClass += " filter-rainbow";
+            if(buffType === 'thunder') extraClass += " filter-thunder";
+            if(buffType === 'water') extraClass += " filter-water";
+
+            modalBody.innerHTML = `
+                <h2 style="color:${charInfo.color || '#fff'};">${charInfo.name} ${mutText}</h2>
+                <div style="font-size: 1.1em; font-weight:bold; color:${charInfo.color || '#fff'}; margin-bottom:5px;">
+                    レア度: ${charInfo.rarity}
+                </div>
+                <div style="margin: 15px 0;">
+                    <img src="${charInfo.img}" class="base-item ${extraClass}" style="width:140px; height:140px;">
+                </div>
+                <div style="font-size: 1.1em; margin-bottom: 20px;">
+                    ステータス: ${buffText}
+                </div>
+                
+                <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap;">
+                    <button onclick="sellCharacter(${index}, ${sellPrice})" style="border-color:#ff4444; color:#ff4444;">売る ($${formatMoney(sellPrice)})</button>
+                    <button onclick="applyBuffToCharacter(${index})" style="border-color:#00ffcc; color:#00ffcc;" ${buffType !== 'none' ? 'disabled' : ''}>バフ付与を試みる</button>
+                </div>
+                
+                <div style="margin-top: 25px;">
+                    <button onclick="showBaseMenu()" style="font-size:0.85em; padding:10px 15px;">基地へ戻る</button>
+                </div>
+            `;
+        }
+
+        function sellCharacter(index, price) {
+            audioSynth.playClick();
+            if (confirm(`このキャラクターを売却し、$${formatMoney(price)} を獲得しますか？`)) {
+                baseItems.splice(index, 1);
+                money += price;
+                saveState();
+                updateUI();
+                showBaseMenu();
+            }
+        }
+
+        function applyBuffToCharacter(index) {
+            audioSynth.playClick();
+            let itemStr = baseItems[index];
+            let parts = itemStr.split(':');
+            let charId = parts[0];
+            let mutType = parts[1] || 'normal';
+            let buffType = parts[2] || 'none';
+
+            if (buffType !== 'none') {
+                return;
+            }
+
+            let currentProb = getBaseBuffProbability();
+            let rand = Math.random() * 100;
+
+            if (rand < currentProb) {
+                let newBuff = Math.random() < 0.5 ? 'thunder' : 'water';
+                baseItems[index] = `${charId}:${mutType}:${newBuff}`;
+                saveState();
+                manageBaseCharacter(index); 
+            }
+        }
+
+        function clearAllCharacters() {
+            audioSynth.playClick();
+            if (baseItems.length > 0) {
+                if (confirm(t('confirmClearAll'))) {
+                    let totalMoney = 0;
+                    for (let i = 0; i < baseItems.length; i++) {
+                        let parts = baseItems[i].split(':');
+                        let charInfo = characters.find(c => c.id === parts[0]) || characters[0];
+                        let mutType = parts[1] || 'normal';
+                        
+                        let sellPrice = 100;
+                        if (charInfo.rarity === 'ゴット') sellPrice = 2000;
+                        if (charInfo.rarity === 'レジェンド') sellPrice = 800;
+                        if (charInfo.rarity === 'シークレット') sellPrice = 3000;
+                        if (charInfo.rarity === 'サンダー') sellPrice = 5000;
+                        if (mutType === 'gold') sellPrice *= 3;
+                        if (mutType === 'diamond') sellPrice *= 10;
+                        if (mutType === 'rainbow') sellPrice *= 50;
+                        
+                        totalMoney += sellPrice;
+                    }
+                    money += totalMoney;
+                    baseItems = [];
+                    saveState();
+                    updateUI();
+                    showBaseMenu();
+                }
+            }
+        }
+
+        function showSettingsMenu() {
+            audioSynth.playClick();
+            modalBody.innerHTML = `
+                <h2 style="color:#ffd700;">${t('settingsTitle')}</h2>
+                
+                <div class="settings-row">
+                    <span>自分のID (6桁の数字)</span>
+                    <input type="text" id="setting-user-id" value="${myUserId}" maxlength="6" style="width:160px; text-align:center;" onchange="updateMyUserId(this.value)">
+                </div>
+
+                <div class="settings-row">
+                    <span>${t('langLabel')}</span>
+                    <select id="setting-lang" onchange="changeLanguage(this.value)">
+                        <option value="ja" ${currentLang === 'ja' ? 'selected' : ''}>日本語 (Japanese)</option>
+                        <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option>
+                    </select>
+                </div>
+
+                <div class="settings-row">
+                    <span>${t('soundLabel')}</span>
+                    <select id="setting-sound" onchange="changeSoundSetting(this.value)">
+                        <option value="true" ${isSoundEnabled ? 'selected' : ''}>${t('soundOn')}</option>
+                        <option value="false" ${!isSoundEnabled ? 'selected' : ''}>${t('soundOff')}</option>
+                    </select>
+                </div>
+
+                <div class="settings-row">
+                    <span>${t('bgmLabel')}</span>
+                    <select id="setting-bgm" onchange="changeBgmSetting(this.value)">
+                        <option value="true" ${isBgmEnabled ? 'selected' : ''}>${t('soundOn')}</option>
+                        <option value="false" ${!isBgmEnabled ? 'selected' : ''}>${t('soundOff')}</option>
+                    </select>
+                </div>
+
+                <br>
+                <button onclick="openMenu()" style="font-size:0.85em; padding:10px 20px;">${t('backBtn')}</button>
+            `;
+        }
+
+        function updateMyUserId(val) {
+            const cleanVal = val.trim();
+            if (/^\d{6}$/.test(cleanVal)) {
+                if (cleanVal !== myUserId) {
+                    myUserId = cleanVal;
+                    saveState();
+                    setupPeer();
+                }
+            } else {
+                document.getElementById('setting-user-id').value = myUserId;
+            }
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            saveState();
+            updateUI();
+            showSettingsMenu();
+        }
+
+        function changeSoundSetting(val) {
+            isSoundEnabled = (val === 'true');
+            saveState();
+            showSettingsMenu();
+        }
+
+        function changeBgmSetting(val) {
+            isBgmEnabled = (val === 'true');
+            saveState();
+            const bgm = document.getElementById('bgm-audio');
+            if (isBgmEnabled) bgm.play().catch(()=>{});
+            else bgm.pause();
+            showSettingsMenu();
+        }
+
+        /* --- 管理者パネル用関数 --- */
+        function switchAdminTab(tabId, e) {
+            audioSynth.playClick();
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+            if(e && e.target) e.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function closeAdmin() {
+            audioSynth.playClick();
+            document.getElementById('admin-panel').style.display = 'none';
+        }
+
+        function addAdminItem(type) {
+            audioSynth.playClick();
+            if (type === 'money') {
+                const val = parseInt(document.getElementById('admin-add-money').value) || 0;
+                money += val;
+            }
+            saveState();
+            updateUI();
+        }
+
+        function toggleInfinite(checked) {
+            audioSynth.playClick();
+            isInfiniteSpin = checked;
+        }
+
+        function updateLuck() {
+            audioSynth.playClick();
+            const multi = parseFloat(document.getElementById('admin-luck-multi').value) || 1;
+            const sec = parseInt(document.getElementById('admin-luck-time').value) || 60;
+            luckMultiplier = multi;
+            luckEndTime = Date.now() + (sec * 1000);
+            updateStatusEffects();
+        }
+
+        function activateMutation() {
+            audioSynth.playClick();
+            const type = document.getElementById('admin-mutation-type').value;
+            const sec = parseInt(document.getElementById('admin-mutation-time').value) || 60;
+            activeMutations[type] = Date.now() + (sec * 1000);
+            updateStatusEffects();
+        }
+
+        function updateMutationProb() {
+            audioSynth.playClick();
+            const prob = parseFloat(document.getElementById('admin-prob-mutation').value) || 10;
+            mutationProb = prob;
+        }
+
+        function showAdminCharList() {
+            audioSynth.playClick();
+            modal.style.display = 'block';
+            let html = '<h2 style="color:#00ffcc; margin-bottom:15px;">基地にキャラクターを追加</h2><div style="display:flex; flex-wrap:wrap; justify-content:center; gap:15px; max-height:500px; overflow-y:auto; padding:15px;">';
+            characters.forEach(c => {
+                html += `
+                    <div style="background:rgba(0,0,0,0.8); padding:15px; border:1px solid ${c.color}; border-radius:5px; text-align:center; min-width: 140px;">
+                        <img src="${c.img}" style="width:70px; height:70px; object-fit:contain; filter:drop-shadow(0 0 5px ${c.color});"><br>
+                        <div style="color:${c.color}; font-size:0.9em; margin: 8px 0; font-weight:bold; word-wrap:break-word;">${c.name}</div>
+                        <div style="font-size:0.75em; color:#ddd; margin-bottom:6px;">レア度: ${c.rarity}</div>
+                        <div style="display:flex; flex-direction:column; gap:5px;">
+                            <button onclick="addSpecificCharToBase('${c.id}', 'normal')" style="padding:6px; font-size:0.8em;">通常追加</button>
+                            <button onclick="addSpecificCharToBase('${c.id}', 'gold')" style="padding:6px; font-size:0.8em; color:gold; border-color:gold;">GOLD追加</button>
+                            <button onclick="addSpecificCharToBase('${c.id}', 'diamond')" style="padding:6px; font-size:0.8em; color:cyan; border-color:cyan;">DIAMOND追加</button>
+                            <button onclick="addSpecificCharToBase('${c.id}', 'rainbow')" style="padding:6px; font-size:0.8em; color:#ff00ff; border-color:#ff00ff;">RAINBOW追加</button>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            modalBody.innerHTML = html;
+        }
+
+        // キャラクター出現メッセージを表示せずにサイレント追加する関数
+        function addSpecificCharToBase(charId, mutation = 'normal') {
+            audioSynth.playClick();
+            if (baseItems.length >= getMaxBaseCapacity()) {
+                return;
+            }
+            let storeId = charId + ":" + mutation + ":none";
+            baseItems.push(storeId);
+            unlockedCharacters[charId + ":" + mutation] = true;
+            saveState();
+            updateUI();
+            // メッセージ(alert)表示を排除
+        }
+    </script>
+</body>
+</html>
