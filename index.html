@@ -625,69 +625,47 @@
             box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.15);
         }
         
-        /* トレード画面：選んだキャラの表示エリアを大きく */
         .trade-slot-display {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            align-items: center;
-            gap: 10px;
+            gap: 5px;
             width: 100%;
-            min-height: 120px;
-            max-height: 200px;
+            min-height: 60px;
+            max-height: 120px;
             overflow-y: auto;
             margin-bottom: 10px;
             background: rgba(255,255,255,0.05);
-            padding: 10px;
+            padding: 5px;
             border-radius: 4px;
         }
 
-        /* トレード画面：手持ちリストのグリッドとアイテム */
         .trade-char-select {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
             gap: 8px;
             width: 100%;
-            max-height: 200px;
+            max-height: 150px;
             overflow-y: auto;
             margin-top: 10px;
             background: rgba(0, 20, 30, 0.5);
-            padding: 10px;
+            padding: 8px;
             border-radius: 4px;
         }
-        
-        .trade-char-item-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        .trade-char-item {
+            width: 50px;
+            height: 50px;
             cursor: pointer;
             border: 2px solid transparent;
-            border-radius: 6px;
-            padding: 5px;
+            border-radius: 4px;
+            padding: 2px;
             transition: all 0.2s;
-            background: rgba(0,0,0,0.5);
         }
-        .trade-char-item-wrapper:hover { filter: brightness(1.2); transform: scale(1.05); }
-        .trade-char-item-wrapper.selected {
+        .trade-char-item:hover { filter: brightness(1.2); }
+        .trade-char-item.selected {
             border-color: var(--primary-green);
-            box-shadow: 0 0 15px var(--primary-green);
+            box-shadow: 0 0 10px var(--primary-green);
             background: rgba(0, 255, 102, 0.2);
-        }
-        .trade-char-item-img {
-            width: 55px;
-            height: 55px;
-            object-fit: contain;
-        }
-        .trade-char-item-name {
-            font-size: 0.65em;
-            color: #fff;
-            margin-top: 5px;
-            text-align: center;
-            line-height: 1.2;
-            width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
         /* トレード左側の強調OKボタン */
@@ -731,6 +709,179 @@
         }
         .filter-thunder { filter: drop-shadow(0 0 20px #e6e600) hue-rotate(40deg) saturate(2) brightness(1.3) !important; }
         .filter-water { filter: drop-shadow(0 0 20px #00bfff) hue-rotate(180deg) saturate(2) brightness(1.2) !important; }
+
+        /* ============================================================
+           ★ 新トレード画面 (TRADE UI v2) 追加スタイル
+           ※ 既存の .trade-* スタイルはそのまま残してあります
+           ============================================================ */
+        .tr2 {
+            width: min(1100px, calc(88vw - 70px));
+            max-height: 84vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 2px 6px 6px;
+            text-align: center;
+        }
+        .tr2::-webkit-scrollbar,
+        .tr2-pick::-webkit-scrollbar,
+        .tr2-offer::-webkit-scrollbar { width: 10px; }
+        .tr2::-webkit-scrollbar-thumb,
+        .tr2-pick::-webkit-scrollbar-thumb,
+        .tr2-offer::-webkit-scrollbar-thumb { background: rgba(0,255,255,0.35); border-radius: 5px; }
+
+        .tr2-title { margin: 0 0 6px; color: var(--primary-pink); font-size: 1.5em; letter-spacing: 2px; }
+
+        /* 上部ステータスバー */
+        .tr2-bar {
+            display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center;
+            background: rgba(0,255,255,0.06); border: 1px solid rgba(0,255,255,0.3);
+            border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.85em;
+        }
+        .tr2-chip {
+            display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+            padding: 4px 12px; border: 1px solid currentColor; border-radius: 20px; background: rgba(0,0,0,0.45);
+        }
+        .tr2-mini {
+            padding: 5px 12px !important; font-size: 0.8em !important; margin: 0 !important; border-radius: 20px !important;
+        }
+
+        /* 手順ガイド */
+        .tr2-steps { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+        .tr2-step {
+            flex: 1 1 170px; padding: 8px 10px; border-radius: 8px; font-size: 0.78em; line-height: 1.4;
+            border: 1px solid #244a5c; background: rgba(0,25,45,0.5); color: #6f95a8; transition: all 0.25s;
+        }
+        .tr2-step b { display: block; font-size: 1.1em; margin-bottom: 2px; }
+        .tr2-step.on {
+            border-color: var(--primary-green); color: #fff;
+            background: rgba(0,255,102,0.15); box-shadow: 0 0 14px rgba(0,255,102,0.35);
+        }
+        .tr2-step.done { border-color: rgba(0,255,102,0.45); color: var(--primary-green); background: rgba(0,255,102,0.07); }
+
+        /* お知らせ行 */
+        .tr2-notice {
+            min-height: 20px; font-size: 0.88em; font-weight: bold; margin-bottom: 8px; line-height: 1.4;
+        }
+
+        /* 交換ボード */
+        .tr2-board { display: flex; align-items: stretch; gap: 12px; }
+        .tr2-panel {
+            flex: 1 1 0; min-width: 0; background: rgba(0,0,0,0.55);
+            border: 2px solid var(--primary-pink); border-radius: 12px; padding: 12px;
+            display: flex; flex-direction: column;
+        }
+        .tr2-panel.mine { border-color: var(--primary-cyan); box-shadow: inset 0 0 18px rgba(0,255,255,0.12); }
+        .tr2-panel h4 { margin: 0 0 4px; font-size: 1.05em; letter-spacing: 1px; }
+        .tr2-panel .tr2-sub { font-size: 0.75em; color: #90a4b0; margin: 0 0 8px; }
+        .tr2-offer {
+            flex: 1; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-content: flex-start;
+            min-height: 210px; max-height: 320px; overflow-y: auto;
+            background: rgba(255,255,255,0.04); border-radius: 8px; padding: 10px;
+        }
+        .tr2-empty { color: #6f7f8a; font-size: 0.88em; margin: auto; padding: 16px 6px; line-height: 1.7; }
+
+        /* キャラクターカード（大きい画像＋名前＋レア度） */
+        .tr2-card {
+            width: 134px; background: rgba(0,0,0,0.55); border: 1px solid #333; border-radius: 10px;
+            padding: 8px 6px 7px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+        }
+        .tr2-card img { width: 106px; height: 106px; object-fit: contain; }
+        .tr2-name { font-size: 0.82em; font-weight: bold; line-height: 1.2; word-break: break-word; }
+        .tr2-rar { font-size: 0.72em; opacity: 0.95; }
+        .tr2-price { font-size: 0.68em; color: #9fb; opacity: 0.85; }
+        .tr2-tags { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin-top: 3px; }
+        .tr2-tag { font-size: 0.6em; padding: 1px 6px; border: 1px solid currentColor; border-radius: 8px; }
+
+        /* 中央の交換マーク */
+        .tr2-swap {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 4px; color: var(--primary-yellow); font-weight: bold; min-width: 62px; font-size: 0.72em;
+        }
+        .tr2-swap .ico { font-size: 2.3em; text-shadow: 0 0 18px var(--primary-yellow); animation: pulseText 1.2s infinite alternate; }
+
+        /* 選択リスト */
+        .tr2-picker {
+            margin-top: 12px; border: 1px solid rgba(0,255,255,0.3); border-radius: 12px;
+            background: rgba(0,20,35,0.5); padding: 10px;
+        }
+        .tr2-picker-head {
+            display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 8px;
+        }
+        .tr2-filters { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+        .tr2-filters button {
+            margin: 0 !important; padding: 4px 11px !important; font-size: 0.72em !important; border-radius: 20px !important;
+        }
+        .tr2-filters button.on { background: var(--primary-cyan) !important; color: #000 !important; font-weight: bold; }
+        .tr2-pick {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+            gap: 8px; max-height: 250px; overflow-y: auto; padding: 4px;
+        }
+        .tr2-pick-item {
+            cursor: pointer; border: 2px solid transparent; border-radius: 10px; padding: 6px 4px;
+            background: rgba(0,0,0,0.45); transition: all 0.15s; position: relative;
+        }
+        .tr2-pick-item img { width: 78px; height: 78px; object-fit: contain; display: block; margin: 0 auto; }
+        .tr2-pick-item .tr2-name { font-size: 0.72em; margin-top: 4px; }
+        .tr2-pick-item .tr2-rar { font-size: 0.65em; }
+        .tr2-pick-item:hover { border-color: rgba(0,255,255,0.6); transform: translateY(-2px); }
+        .tr2-pick-item.sel {
+            border-color: var(--primary-green); background: rgba(0,255,102,0.18); box-shadow: 0 0 12px var(--primary-green);
+        }
+        .tr2-pick-item.sel::after {
+            content: "\2714"; position: absolute; top: 4px; right: 5px; color: #000; background: var(--primary-green);
+            width: 20px; height: 20px; line-height: 20px; border-radius: 50%; font-size: 0.72em; font-weight: bold;
+        }
+        .tr2-pick-item.locked { opacity: 0.4; cursor: not-allowed; }
+        .tr2-pick-item.locked:hover { border-color: transparent; transform: none; }
+
+        /* 決定ボタン行 */
+        .tr2-confirm { display: flex; gap: 12px; align-items: stretch; margin-top: 12px; flex-wrap: wrap; }
+        .tr2-okbtn {
+            flex: 2 1 340px; padding: 16px 20px; font-size: 1.12em; font-weight: bold; border-radius: 10px;
+            border: 2px solid var(--primary-green); color: var(--primary-green); background: rgba(0,255,102,0.12);
+            cursor: pointer; transition: all 0.2s; letter-spacing: 1px; line-height: 1.4;
+        }
+        .tr2-okbtn:hover:not(:disabled) { background: rgba(0,255,102,0.3); box-shadow: 0 0 22px var(--primary-green); }
+        .tr2-okbtn.on { background: var(--primary-green); color: #000; box-shadow: 0 0 25px var(--primary-green); text-shadow: none; }
+        .tr2-okbtn:disabled { border-color: #666; color: #888; background: rgba(255,255,255,0.05); cursor: not-allowed; box-shadow: none; }
+        .tr2-peerstat {
+            flex: 1 1 210px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 2px dashed #3a4a5a; border-radius: 10px; padding: 10px; font-weight: bold; font-size: 0.95em; color: #8896a2;
+        }
+        .tr2-peerstat.ok {
+            border-style: solid; border-color: var(--primary-green); color: var(--primary-green); background: rgba(0,255,102,0.09);
+        }
+
+        /* ロビー */
+        .tr2-lobby { display: flex; gap: 16px; flex-wrap: wrap; margin: 14px 0; }
+        .tr2-lobby-card { flex: 1 1 290px; border-radius: 12px; padding: 18px; text-align: left; }
+        .tr2-roomcode {
+            font-size: 3em; font-weight: bold; color: var(--primary-yellow); letter-spacing: 10px;
+            text-shadow: 0 0 20px var(--primary-yellow); margin: 10px 0;
+        }
+        .tr2-help {
+            font-size: 0.8em; color: #8fd8bb; background: rgba(0,255,102,0.07);
+            border: 1px solid rgba(0,255,102,0.35); border-radius: 8px; padding: 10px 14px; text-align: left; line-height: 1.7;
+        }
+
+        /* 成立演出 */
+        .tr2-done-title { color: var(--primary-green); font-size: 1.8em; text-shadow: 0 0 20px var(--primary-green); margin: 0 0 4px; }
+        @keyframes tr2Pop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+        .tr2-pop { animation: tr2Pop 0.45s cubic-bezier(0.2, 1.3, 0.4, 1) both; }
+
+        /* 狭い画面対応 */
+        @media (max-width: 760px) {
+            .modal { min-width: 0; width: 94vw; max-width: 94vw; padding: 18px 12px; }
+            .tr2 { width: 100%; max-height: 80vh; }
+            .tr2-board { flex-direction: column; }
+            .tr2-swap { flex-direction: row; min-width: 0; min-height: 42px; gap: 10px; }
+            .tr2-swap .ico { font-size: 1.8em; }
+            .tr2-card { width: 112px; }
+            .tr2-card img { width: 88px; height: 88px; }
+            .tr2-pick { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+            .tr2-pick-item img { width: 66px; height: 66px; }
+            .tr2-roomcode { font-size: 2.2em; letter-spacing: 6px; }
+        }
 
         /* タブボタン用 */
         .index-tabs button { margin: 0 5px; padding: 10px 15px; font-size: 0.9em; }
@@ -1060,64 +1211,160 @@
             });
         }
 
+        /* ★修正版：通信ハンドラ
+           ・交換確定(tradeFinalized)後に届く CANCEL / close で状態が消えないようガード
+           ・TRADE_EXEC / TRADE_DONE を追加し、片側だけ交換される事故を防止
+           ・相手が中身を変更したら自分のOKも自動解除（詐欺防止・分かりやすさ向上） */
         function setupConnectionListeners(conn) {
-            conn.on('open', () => {
+            const onOpen = () => {
                 modal.style.display = 'block';
+                tradeFinalized = false;
+                tradeSetNotice('相手と接続しました！出すキャラクターを選んでください。', 'var(--primary-green)');
                 renderTradeUI();
-                if (mySelectedTradeIndices.length > 0) {
-                    conn.send({ type: 'SELECT_CHARS', chars: mySelectedTradeIndices.map(i => baseItems[i]) });
-                }
-            });
+                // 接続前に選んでいた分を必ず送る
+                try { conn.send({ type: 'SELECT_CHARS', chars: myTradeOffer() }); } catch(e){}
+            };
+            // ★重要：すでに open 済みの接続では 'open' は二度と発火しない。
+            //   参加者側は conn.on('open') の中でこの関数を呼ぶため、
+            //   以前は初期選択が相手に送られないことがあった。
+            if (conn.open) { setTimeout(onOpen, 0); } else { conn.on('open', onOpen); }
 
             conn.on('data', (data) => {
                 if (!data) return;
+
                 if (data.type === 'ROOM_FULL') {
+                    tradeSetNotice('その部屋はすでに満員です（1対1専用）。', '#ff8888');
                     resetTradeState();
+                    setupPeer();
                     renderTradeUI();
+
                 } else if (data.type === 'SELECT_CHAR') {
-                    peerSelectedTradeChars = [data.charStr];
-                    peerTradeOk = false;
-                    renderTradeUI();
+                    // 旧バージョンとの互換用
+                    if (tradeFinalized) return;
+                    peerSelectedTradeChars = sanitizeTradeList([data.charStr]);
+                    onPeerOfferChanged();
+
                 } else if (data.type === 'SELECT_CHARS') {
-                    peerSelectedTradeChars = data.chars || [];
-                    
-                    // お互いの変更があったら安全のために両方のOKを外す
-                    peerTradeOk = false;
-                    myTradeOk = false;
-                    if (activeConn) {
-                        try { activeConn.send({ type: 'TOGGLE_OK', ok: false }); } catch(e){}
-                    }
-                    renderTradeUI();
+                    if (tradeFinalized) return;
+                    peerSelectedTradeChars = sanitizeTradeList(data.chars);
+                    onPeerOfferChanged();
+
                 } else if (data.type === 'TOGGLE_OK') {
-                    peerTradeOk = data.ok;
+                    if (tradeFinalized) return;
+
+                    // ★安全確認：OK時は「相手が出す物」「相手が把握している自分の物」を必ず照合
+                    if (data.ok && Array.isArray(data.mine)) {
+                        const theirOffer = sanitizeTradeList(data.mine);
+                        const myOffer = myTradeOffer();
+                        const mismatch =
+                            tradeSig(theirOffer) !== tradeSig(peerSelectedTradeChars) ||
+                            (Array.isArray(data.theirs) && tradeSig(data.theirs) !== tradeSig(myOffer));
+                        if (mismatch) {
+                            peerSelectedTradeChars = theirOffer;
+                            peerTradeOk = false;
+                            myTradeOk = false;
+                            try { activeConn.send({ type: 'SELECT_CHARS', chars: myOffer }); } catch(e){}
+                            try { activeConn.send({ type: 'TOGGLE_OK', ok: false }); } catch(e){}
+                            tradeSetNotice('表示のズレを検出したため、いったんOKを解除しました。内容を確認してもう一度OKしてください。', 'var(--primary-yellow)');
+                            renderTradeUI();
+                            return;
+                        }
+                        peerSelectedTradeChars = theirOffer;
+                    }
+
+                    peerTradeOk = !!data.ok;
+                    tradeSetNotice(
+                        peerTradeOk ? '相手がOKしました！あなたもOKすれば交換成立です。' : '相手がOKを解除しました。',
+                        peerTradeOk ? 'var(--primary-green)' : 'var(--primary-yellow)'
+                    );
                     renderTradeUI();
                     checkAndExecuteTrade();
-                } else if (data.type === 'TRADE_SUCCESS') {
-                    // 相手からの完了通知。ローカルでも完了処理が進んでいるため無視でOK。
+
+                } else if (data.type === 'TRADE_EXEC' || data.type === 'TRADE_DONE') {
+                    // 相手側で交換が確定した合図。自分がOK済みなら必ず自分も交換する
+                    if (tradeFinalized) return;
+                    if (!myTradeOk) return;
+                    peerTradeOk = true;
+                    checkAndExecuteTrade();
+
                 } else if (data.type === 'CANCEL') {
-                    // トレード処理中でなければキャンセルを受け入れる
-                    if (!(myTradeOk && peerTradeOk)) {
-                        alert("相手との通信が切断されました。");
-                        resetTradeState();
-                        renderTradeUI();
-                    }
+                    if (tradeFinalized) return; // ★成立後のCANCELは無視（これが「交換したのに変わらない」原因だった）
+                    tradeSetNotice('相手がトレードを中止しました。', '#ff8888');
+                    resetTradeState();
+                    setupPeer();
+                    renderTradeUI();
                 }
             });
 
             conn.on('close', () => {
-                if (activeConn === conn) {
-                    resetTradeState();
-                    renderTradeUI();
-                }
+                if (activeConn !== conn) return;
+                if (tradeFinalized) { activeConn = null; return; } // ★成立後の切断では在庫を触らない
+                tradeSetNotice('相手との接続が切れました。', '#ff8888');
+                resetTradeState();
+                setupPeer();
+                renderTradeUI();
             });
 
             conn.on('error', (err) => {
                 console.error("Connection error:", err);
-                if (activeConn === conn) {
-                    resetTradeState();
-                    renderTradeUI();
-                }
+                if (activeConn !== conn) return;
+                if (tradeFinalized) { activeConn = null; return; }
+                tradeSetNotice('通信エラーが発生しました。', '#ff8888');
+                resetTradeState();
+                setupPeer();
+                renderTradeUI();
             });
+        }
+
+        /* ---- トレードv2 用の追加変数 ---- */
+        let tradeFinalized = false;   // 交換が確定したか（二重実行・巻き戻しを防ぐ）
+        let tradeLastResult = null;   // 直前の交換結果（成立画面用）
+        let tradeNotice = "";         // 画面内お知らせ
+        let tradeNoticeColor = "";
+        let tradeNoticeTimer = null;
+        let tradePickScroll = 0;      // 選択リストのスクロール位置保持
+        let tradeFilter = 'all';      // レア度フィルタ
+
+        function tradeSetNotice(msg, color) {
+            tradeNotice = msg || "";
+            tradeNoticeColor = color || 'var(--primary-cyan)';
+            if (tradeNoticeTimer) clearTimeout(tradeNoticeTimer);
+            if (msg) {
+                tradeNoticeTimer = setTimeout(() => {
+                    tradeNotice = "";
+                    if (modal && modal.style.display === 'block') renderTradeUI();
+                }, 5000);
+            }
+        }
+
+        // 自分がいま提示しているキャラ一覧
+        function myTradeOffer() {
+            return mySelectedTradeIndices.map(i => baseItems[i]).filter(v => v !== undefined);
+        }
+
+        // 提示内容の照合用シグネチャ
+        function tradeSig(list) {
+            return (Array.isArray(list) ? list : []).join('|');
+        }
+
+        // 相手から届いたキャラ文字列を検証（不正・壊れたデータを弾く）
+        function sanitizeTradeList(list) {
+            if (!Array.isArray(list)) return [];
+            return list.filter(v => typeof v === 'string' && v.length > 0 &&
+                characters.some(c => c.id === v.split(':')[0])).slice(0, 60);
+        }
+
+        // 相手の提示内容が変わったときの共通処理
+        function onPeerOfferChanged() {
+            peerTradeOk = false;
+            if (myTradeOk) {
+                myTradeOk = false;
+                if (activeConn) { try { activeConn.send({ type: 'TOGGLE_OK', ok: false }); } catch(e){} }
+                tradeSetNotice('⚠ 相手が内容を変更したため、安全のためあなたのOKを解除しました。もう一度確認してください。', 'var(--primary-yellow)');
+            } else {
+                tradeSetNotice('相手が出すキャラクターを変更しました。', 'var(--primary-cyan)');
+            }
+            renderTradeUI();
         }
 
         function resetTradeState() {
@@ -1131,6 +1378,7 @@
             peerTradeOk = false;
             currentRoomCode = null;
             isHost = false;
+            tradeFinalized = false; // ★交換確定フラグも初期化
         }
 
         // --- Web Audio API 高品質サウンドジェネレーター ---
@@ -1578,9 +1826,19 @@
 
         document.getElementById('spin-btn').addEventListener('click', handleNormalSpin);
 
-        // トレード画面制御（1対1部屋作成・参加機能）
+        /* ============================================================
+           トレード画面 v2（1対1・部屋番号方式）
+           ・★バグ修正：部屋を作った側（ホスト）で交換が反映されない問題
+             → 相手の CANCEL / 切断より先に「交換内容をスナップショット確定」し、
+               確定後は相手からの中止通知で在庫がリセットされないようにした
+           ・キャラ画像を大きく表示＋名前／レア度／変異・バフも表示
+           ・手順ガイド、絞り込み、評価額、成立演出などを追加
+           ============================================================ */
         function openTradeMenu() {
             audioSynth.playClick();
+            tradeLastResult = null;
+            tradeFinalized = false;
+            tradeNotice = "";
             modal.style.display = 'block';
             renderTradeUI();
         }
@@ -1588,9 +1846,11 @@
         function createTradeRoom() {
             audioSynth.playClick();
             resetTradeState();
+            tradeLastResult = null;
             currentRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
             isHost = true;
             setupPeer('trade-room-' + currentRoomCode);
+            tradeSetNotice('部屋を作りました。4桁の番号を相手に伝えてください。', 'var(--primary-green)');
             renderTradeUI();
         }
 
@@ -1600,10 +1860,13 @@
             if (!inputEl) return;
             const code = inputEl.value.trim();
             if (!/^\d{4}$/.test(code)) {
+                tradeSetNotice('部屋番号は「4桁の数字」で入力してください。', '#ff8888');
+                renderTradeUI();
                 return;
             }
 
             resetTradeState();
+            tradeLastResult = null;
             currentRoomCode = code;
             isHost = false;
 
@@ -1628,7 +1891,9 @@
                 let connected = false;
                 const timeout = setTimeout(() => {
                     if (!connected && !activeConn) {
+                        tradeSetNotice('部屋が見つかりませんでした。番号を確認して、相手が部屋を開いているか確かめてください。', '#ff8888');
                         resetTradeState();
+                        setupPeer();
                         renderTradeUI();
                     }
                 }, 10000);
@@ -1642,237 +1907,535 @@
                 });
                 conn.on('error', (err) => {
                     clearTimeout(timeout);
+                    tradeSetNotice('接続に失敗しました。もう一度お試しください。', '#ff8888');
                     resetTradeState();
+                    setupPeer();
                     renderTradeUI();
                 });
             });
 
             peer.on('error', (err) => {
                 console.error("Guest Peer Error:", err);
+                if (activeConn) return;
+                tradeSetNotice('接続エラーが発生しました。番号を確認してもう一度お試しください。', '#ff8888');
                 resetTradeState();
                 renderTradeUI();
             });
             renderTradeUI();
         }
 
+        // 部屋番号をコピー
+        function copyRoomCode() {
+            if (!currentRoomCode) return;
+            audioSynth.playClick();
+            const txt = currentRoomCode;
+            const done = () => { tradeSetNotice('部屋番号 ' + txt + ' をコピーしました！', 'var(--primary-green)'); renderTradeUI(); };
+            const fallback = () => {
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+                    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+                    document.body.removeChild(ta); done();
+                } catch(e) {
+                    tradeSetNotice('コピーできませんでした。番号を手で伝えてください。', '#ff8888');
+                    renderTradeUI();
+                }
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(txt).then(done).catch(fallback);
+            } else { fallback(); }
+        }
+
+        /* ---------- 表示用ヘルパー ---------- */
+
+        // キャラ文字列 "id:変異:バフ" を表示情報に変換
+        function tradeCharInfo(itemStr) {
+            const parts = String(itemStr || '').split(':');
+            const mut = parts[1] || 'normal';
+            const buff = parts[2] || 'none';
+            const info = characters.find(c => c.id === parts[0]) || characters[0];
+            let fx = "";
+            if (mut === 'gold') fx += " filter-gold";
+            if (mut === 'diamond') fx += " filter-diamond";
+            if (mut === 'rainbow') fx += " filter-rainbow";
+            if (buff === 'thunder') fx += " filter-thunder";
+            if (buff === 'water') fx += " filter-water";
+            let tags = "";
+            if (mut === 'gold') tags += '<span class="tr2-tag" style="color:gold;">GOLD</span>';
+            if (mut === 'diamond') tags += '<span class="tr2-tag" style="color:cyan;">DIAMOND</span>';
+            if (mut === 'rainbow') tags += '<span class="tr2-tag" style="color:#ff00ff;">RAINBOW</span>';
+            if (buff === 'thunder') tags += '<span class="tr2-tag" style="color:#e6e600;">⚡雷バフ</span>';
+            if (buff === 'water') tags += '<span class="tr2-tag" style="color:#00bfff;">💧水バフ</span>';
+            return { info: info, mut: mut, buff: buff, fx: fx.trim(), tags: tags };
+        }
+
+        // 参考価値（売値と同じ計算）※交換の目安表示に使用
+        function tradeValueOf(itemStr) {
+            const parts = String(itemStr || '').split(':');
+            const info = characters.find(c => c.id === parts[0]);
+            const mut = parts[1] || 'normal';
+            let p = 100;
+            if (info) {
+                if (info.rarity === 'ゴット') p = 2000;
+                if (info.rarity === 'レジェンド') p = 800;
+                if (info.rarity === 'シークレット') p = 3000;
+                if (info.rarity === 'サンダー') p = 5000;
+            }
+            if (mut === 'gold') p *= 3;
+            if (mut === 'diamond') p *= 10;
+            if (mut === 'rainbow') p *= 50;
+            return p;
+        }
+
+        // 大きいキャラカード（画像＋名前＋レア度＋タグ）
+        function buildTradeCard(itemStr) {
+            const d = tradeCharInfo(itemStr);
+            return `
+                <div class="tr2-card tr2-pop" style="border-color:${d.info.color || '#333'};">
+                    <img src="${d.info.img}" class="${d.fx}" alt="${d.info.name}">
+                    <div class="tr2-name" style="color:${d.info.color || '#fff'};">${d.info.name}</div>
+                    <div class="tr2-rar" style="color:${d.info.color || '#aaa'};">${d.info.rarity}</div>
+                    <div class="tr2-price">参考 $${formatMoney(tradeValueOf(itemStr))}</div>
+                    <div class="tr2-tags">${d.tags}</div>
+                </div>`;
+        }
+
+        function buildTradeNoticeHtml() {
+            if (!tradeNotice) return '<div class="tr2-notice">&nbsp;</div>';
+            return `<div class="tr2-notice" style="color:${tradeNoticeColor};">${tradeNotice}</div>`;
+        }
+
+        /* ---------- 画面描画 ---------- */
         function renderTradeUI() {
             modal.style.display = 'block';
 
-            if (!activeConn) {
-                if (isHost && currentRoomCode) {
-                    modalBody.innerHTML = `
-                        <h2 style="color:var(--primary-pink);">P2P 1対1 トレードルーム</h2>
-                        <div style="background:rgba(0, 255, 255, 0.08); border:1px solid var(--primary-cyan); padding:20px; border-radius:8px; margin:20px 0;">
-                            <p style="font-size:1em; color:#fff; margin:0 0 10px;">あなたの部屋番号 (4桁)</p>
-                            <div style="font-size:3.5em; font-weight:bold; color:var(--primary-yellow); letter-spacing:8px; text-shadow:0 0 15px var(--primary-yellow); margin:15px 0;">
-                                ${currentRoomCode}
-                            </div>
-                            <p style="font-size:0.9em; color:var(--primary-cyan); margin-top:15px;" class="pulse-text">相手の参加を待っています... (一対一)</p>
-                        </div>
-                        <button onclick="cancelTrade()" style="font-size:0.85em; padding:8px 16px; border-color:#ff4444; color:#ff4444;">部屋を閉じる</button>
-                    `;
-                } else if (!isHost && currentRoomCode) {
-                    modalBody.innerHTML = `
-                        <h2 style="color:var(--primary-pink);">P2P 1対1 トレードルーム</h2>
-                        <div style="margin:25px 0;">
-                            <p style="font-size:1.1em; color:var(--primary-cyan);">部屋番号 [ <strong style="color:var(--primary-yellow);">${currentRoomCode}</strong> ] に接続中...</p>
-                            <p style="font-size:0.85em; color:#aaa;">ホストの応答を待っています。</p>
-                        </div>
-                        <button onclick="cancelTrade()" style="font-size:0.85em; padding:8px 16px; border-color:#ff4444; color:#ff4444;">キャンセル</button>
-                    `;
-                } else {
-                    modalBody.innerHTML = `
-                        <h2 style="color:var(--primary-pink);">P2P 1対1 キャラタートレード</h2>
-                        <div style="display:flex; flex-direction:column; gap:20px; margin:20px 0;">
-                            <div style="background:rgba(0,255,255,0.05); border:1px solid var(--primary-cyan); padding:18px; border-radius:8px;">
-                                <h3 style="margin:0 0 8px; color:var(--primary-cyan); font-size:1.1em;">① トレード部屋を作る (1対1)</h3>
-                                <p style="font-size:0.8em; color:#aaa; margin-bottom:12px;">ボタンを押して部屋を作り、表示された4桁の番号を相手に共有してください。</p>
-                                <button onclick="createTradeRoom()" style="border-color:var(--primary-cyan); color:var(--primary-cyan); font-weight:bold; width:100%; padding:12px;">トレード部屋作成</button>
-                            </div>
-                            <div style="background:rgba(255,0,255,0.05); border:1px solid var(--primary-pink); padding:18px; border-radius:8px;">
-                                <h3 style="margin:0 0 8px; color:var(--primary-pink); font-size:1.1em;">② 相手の部屋に入る</h3>
-                                <p style="font-size:0.8em; color:#aaa; margin-bottom:12px;">教えてもらった四桁の部屋番号を入力してください。</p>
-                                <div style="display:flex; gap:10px; justify-content:center; align-items:center;">
-                                    <input type="text" id="join-room-id" placeholder="四桁の番号" maxlength="4" style="background:#000; color:#fff; border:1px solid var(--primary-pink); padding:10px; font-size:1.2em; width:120px; text-align:center; border-radius:4px; letter-spacing:3px;">
-                                    <button onclick="joinTradeRoom()" style="border-color:var(--primary-pink); color:var(--primary-pink); font-weight:bold; padding:10px 18px;">部屋に参加</button>
-                                </div>
-                            </div>
-                        </div>
-                        <button onclick="closeModal()" style="font-size:0.85em; padding:8px 16px;">閉じる</button>
-                    `;
-                }
+            // 再描画してもスクロール位置・入力値を失わないよう退避
+            const prevPick = document.getElementById('tr2-pick');
+            if (prevPick) tradePickScroll = prevPick.scrollTop;
+            const prevInput = document.getElementById('join-room-id');
+            const prevInputVal = prevInput ? prevInput.value : '';
+
+            if (tradeLastResult) {
+                modalBody.innerHTML = buildTradeResultHtml();
+            } else if (!activeConn) {
+                modalBody.innerHTML = buildTradeLobbyHtml();
             } else {
-                // トレード接続中画面：UIを大きくし名前を表示
-                let myCharHtml = "";
-                baseItems.forEach((itemStr, index) => {
-                    let parts = itemStr.split(':');
-                    let charObj = characters.find(c => c.id === parts[0]) || characters[0];
-                    let isSelected = mySelectedTradeIndices.includes(index);
-                    myCharHtml += `
-                        <div class="trade-char-item-wrapper ${isSelected ? 'selected' : ''}" onclick="selectTradeChar(${index})">
-                            <img src="${charObj.img}" class="trade-char-item-img" title="${charObj.name}">
-                            <div class="trade-char-item-name" style="color:${charObj.color || '#fff'};">${charObj.name}</div>
-                        </div>
-                    `;
-                });
+                modalBody.innerHTML = buildTradeRoomHtml();
+            }
 
-                let mySelectedDisplay = "";
-                if (mySelectedTradeIndices.length === 0) {
-                    mySelectedDisplay = "<p style='color:#777; margin:auto; font-size:1em; font-weight:bold;'>【何も出さない】</p>";
-                } else {
-                    mySelectedTradeIndices.forEach(idx => {
-                        let parts = baseItems[idx].split(':');
-                        let charObj = characters.find(c => c.id === parts[0]) || characters[0];
-                        mySelectedDisplay += `
-                        <div style="display:flex; flex-direction:column; align-items:center; margin:5px; background:rgba(0,255,255,0.1); border-radius:4px; padding:5px; border:1px solid ${charObj.color || 'var(--primary-cyan)'};">
-                            <img src="${charObj.img}" style="width:70px; height:70px; object-fit:contain; filter:drop-shadow(0 0 5px ${charObj.color || 'var(--primary-cyan)'});">
-                            <span style="font-size:0.75em; color:${charObj.color || '#fff'}; margin-top:4px; font-weight:bold; text-align:center; max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${charObj.name}</span>
-                        </div>`;
-                    });
-                }
-
-                let peerSelectedDisplay = "";
-                if (peerSelectedTradeChars.length === 0) {
-                    peerSelectedDisplay = "<p style='color:#777; margin:auto; font-size:1em; font-weight:bold;'>【まだ選んでいません】</p>";
-                } else {
-                    peerSelectedTradeChars.forEach(charStr => {
-                        let parts = charStr.split(':');
-                        let charObj = characters.find(c => c.id === parts[0]) || characters[0];
-                        peerSelectedDisplay += `
-                        <div style="display:flex; flex-direction:column; align-items:center; margin:5px; background:rgba(255,0,255,0.1); border-radius:4px; padding:5px; border:1px solid ${charObj.color || 'var(--primary-pink)'};">
-                            <img src="${charObj.img}" style="width:70px; height:70px; object-fit:contain; filter:drop-shadow(0 0 5px ${charObj.color || 'var(--primary-pink)'});">
-                            <span style="font-size:0.75em; color:${charObj.color || '#fff'}; margin-top:4px; font-weight:bold; text-align:center; max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${charObj.name}</span>
-                        </div>`;
-                    });
-                }
-
-                let okBtnStateClass = myTradeOk ? 'active-ok' : '';
-                let okBtnText = myTradeOk ? '✔ OK 完了 (解除する)' : 'OK ボタンを押す';
-
-                modalBody.innerHTML = `
-                    <h2 style="color:var(--primary-pink); margin-bottom:5px;">P2P 1対1 トレードルーム</h2>
-                    <p style="font-size:0.85em; color:var(--primary-green); margin-top:0;">部屋番号: <strong style="color:var(--primary-yellow); font-size:1.1em;">${currentRoomCode || '---'}</strong> (一対一通信中)</p>
-                    <div class="trade-box">
-                        <div class="trade-slot trade-slot-left">
-                            <h4 style="margin:0 0 5px; color:var(--primary-cyan);">【あなた】(左側)</h4>
-                            <div class="trade-slot-display">${mySelectedDisplay}</div>
-                            <div class="trade-char-select">
-                                ${myCharHtml || '<span style="font-size:0.7em; color:#777;">基地にキャラがいません</span>'}
-                            </div>
-                            <button class="trade-ok-btn ${okBtnStateClass}" onclick="toggleMyOk()">
-                                ${okBtnText}
-                            </button>
-                        </div>
-                        <div class="trade-slot">
-                            <h4 style="margin:0 0 5px; color:var(--primary-pink);">【相手】(右側)</h4>
-                            <div class="trade-slot-display">${peerSelectedDisplay}</div>
-                            <div style="margin-top:auto; font-weight:bold; color:${peerTradeOk ? 'var(--primary-green)' : '#777'}; font-size:1.1em; padding:10px;">
-                                ${peerTradeOk ? '✔ 相手: OK済み' : '相手: 確認中...'}
-                            </div>
-                        </div>
-                    </div>
-                    <br>
-                    <button onclick="cancelTrade()" style="border-color:#ff4444; color:#ff4444; font-size:0.85em; padding:8px 16px;">トレード中止（部屋を出る）</button>
-                `;
+            const pick = document.getElementById('tr2-pick');
+            if (pick) pick.scrollTop = tradePickScroll;
+            const input = document.getElementById('join-room-id');
+            if (input) {
+                if (prevInputVal) input.value = prevInputVal;
+                input.onkeydown = function(e) { if (e.key === 'Enter') joinTradeRoom(); };
+                input.oninput = function() { this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4); };
             }
         }
 
-        function selectTradeChar(index) {
-            audioSynth.playClick();
-            const pos = mySelectedTradeIndices.indexOf(index);
-            if (pos > -1) {
-                mySelectedTradeIndices.splice(pos, 1);
+        // --- ロビー（未接続時） ---
+        function buildTradeLobbyHtml() {
+            if (isHost && currentRoomCode) {
+                return `
+                <div class="tr2">
+                    <h2 class="tr2-title">P2P 1対1 トレード</h2>
+                    ${buildTradeNoticeHtml()}
+                    <div style="background:rgba(0,255,255,0.08); border:2px solid var(--primary-cyan); padding:22px; border-radius:12px; margin:8px 0 14px;">
+                        <p style="font-size:0.95em; color:#fff; margin:0;">相手に伝える「部屋番号」</p>
+                        <div class="tr2-roomcode">${currentRoomCode}</div>
+                        <button onclick="copyRoomCode()" class="tr2-mini" style="border-color:var(--primary-yellow); color:var(--primary-yellow);">📋 番号をコピー</button>
+                        <p class="pulse-text" style="font-size:0.9em; color:var(--primary-cyan); margin:16px 0 0;">相手が この番号を入力すると自動でつながります…</p>
+                    </div>
+                    <div class="tr2-help">
+                        ① あなた：この4桁の番号を相手に伝える<br>
+                        ② 相手：TRADE →「② 相手の部屋に入る」に番号を入力<br>
+                        ③ つながったら、お互いキャラを選んでOKを押すと交換成立！
+                    </div>
+                    <br>
+                    <button onclick="cancelTrade()" style="font-size:0.85em; padding:10px 18px; border-color:#ff4444; color:#ff4444;">部屋を閉じる</button>
+                </div>`;
+            }
+
+            if (!isHost && currentRoomCode) {
+                return `
+                <div class="tr2">
+                    <h2 class="tr2-title">P2P 1対1 トレード</h2>
+                    ${buildTradeNoticeHtml()}
+                    <div style="margin:22px 0; padding:22px; border:2px solid var(--primary-pink); border-radius:12px; background:rgba(255,0,255,0.06);">
+                        <p style="font-size:1.1em; color:var(--primary-cyan); margin:0;">部屋番号 [ <strong style="color:var(--primary-yellow);">${currentRoomCode}</strong> ] に接続中…</p>
+                        <p class="pulse-text" style="font-size:0.9em; color:#aaa; margin:10px 0 0;">ホストの応答を待っています（最大10秒）</p>
+                    </div>
+                    <button onclick="cancelTrade()" style="font-size:0.85em; padding:10px 18px; border-color:#ff4444; color:#ff4444;">キャンセル</button>
+                </div>`;
+            }
+
+            return `
+            <div class="tr2">
+                <h2 class="tr2-title">P2P 1対1 キャラクタートレード</h2>
+                ${buildTradeNoticeHtml()}
+                <div class="tr2-help" style="margin-bottom:6px;">
+                    <b style="color:#fff;">かんたん3ステップ</b><br>
+                    ① どちらかが部屋を作る　→　② もう一人が4桁番号で入る　→　③ お互いキャラを選んでOK！
+                </div>
+                <div class="tr2-lobby">
+                    <div class="tr2-lobby-card" style="background:rgba(0,255,255,0.06); border:2px solid var(--primary-cyan);">
+                        <h3 style="margin:0 0 8px; color:var(--primary-cyan); font-size:1.1em;">① トレード部屋を作る</h3>
+                        <p style="font-size:0.8em; color:#aaa; margin:0 0 14px; line-height:1.6;">ボタンを押すと4桁の部屋番号が出ます。その番号を相手に伝えてください。</p>
+                        <button onclick="createTradeRoom()" style="border-color:var(--primary-cyan); color:var(--primary-cyan); font-weight:bold; width:100%; padding:14px; margin:0;">トレード部屋を作成</button>
+                    </div>
+                    <div class="tr2-lobby-card" style="background:rgba(255,0,255,0.06); border:2px solid var(--primary-pink);">
+                        <h3 style="margin:0 0 8px; color:var(--primary-pink); font-size:1.1em;">② 相手の部屋に入る</h3>
+                        <p style="font-size:0.8em; color:#aaa; margin:0 0 14px; line-height:1.6;">教えてもらった4桁の番号を入力して参加します（Enterでも参加）。</p>
+                        <div style="display:flex; gap:10px; justify-content:center; align-items:center;">
+                            <input type="text" id="join-room-id" inputmode="numeric" placeholder="0000" maxlength="4" style="background:#000; color:#fff; border:2px solid var(--primary-pink); padding:11px; font-size:1.4em; width:130px; text-align:center; border-radius:6px; letter-spacing:6px;">
+                            <button onclick="joinTradeRoom()" style="border-color:var(--primary-pink); color:var(--primary-pink); font-weight:bold; padding:12px 18px; margin:0;">部屋に参加</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="font-size:0.78em; color:#7f95a2; line-height:1.7; text-align:left; border-top:1px solid rgba(0,255,255,0.2); padding-top:10px;">
+                    ・トレードは1対1です。交換はお互いがOKを押した瞬間に成立します。<br>
+                    ・変異（GOLD / DIAMOND / RAINBOW）やバフが付いたキャラは、その状態のまま相手に渡ります。<br>
+                    ・基地の空き枠が足りないときは交換できません。先に整理するかリバースで枠を広げてください。
+                </div>
+                <br>
+                <button onclick="closeModal()" style="font-size:0.85em; padding:10px 20px;">閉じる</button>
+            </div>`;
+        }
+
+        // --- 接続中のトレード画面 ---
+        function buildTradeRoomHtml() {
+            const maxCap = getMaxBaseCapacity();
+            const giveCount = mySelectedTradeIndices.filter(i => baseItems[i] !== undefined).length;
+            const after = baseItems.length - giveCount + peerSelectedTradeChars.length;
+            const over = after > maxCap;
+
+            // 自分が出すキャラ
+            let mineHtml = "";
+            let myValue = 0;
+            if (giveCount === 0) {
+                mineHtml = `<div class="tr2-empty">下のリストから<br><b style="color:var(--primary-cyan);">出したいキャラをタップ</b>して選んでください<br><span style="font-size:0.9em;">（何も出さずにOKすることもできます）</span></div>`;
             } else {
-                mySelectedTradeIndices.push(index);
+                mySelectedTradeIndices.forEach(i => {
+                    if (baseItems[i] === undefined) return;
+                    mineHtml += buildTradeCard(baseItems[i]);
+                    myValue += tradeValueOf(baseItems[i]);
+                });
             }
-            
-            // 安全のため自分と相手のOKを解除
-            myTradeOk = false;
-            peerTradeOk = false;
+
+            // 相手が出すキャラ
+            let peerHtml = "";
+            let peerValue = 0;
+            if (peerSelectedTradeChars.length === 0) {
+                peerHtml = `<div class="tr2-empty">相手はまだ選んでいません…<br><span style="font-size:0.9em;">相手が選ぶとここに大きく表示されます</span></div>`;
+            } else {
+                peerSelectedTradeChars.forEach(cs => {
+                    peerHtml += buildTradeCard(cs);
+                    peerValue += tradeValueOf(cs);
+                });
+            }
+
+            // 交換バランスの目安
+            let judge = 'まだ内容が決まっていません', jColor = '#8896a2';
+            if (giveCount > 0 || peerSelectedTradeChars.length > 0) {
+                if (peerValue >= myValue * 1.2) { judge = '🟢 あなたが得しそうな交換です'; jColor = 'var(--primary-green)'; }
+                else if (myValue >= peerValue * 1.2) { judge = '🔴 あなたが損しそうな交換です'; jColor = '#ff6b6b'; }
+                else { judge = '🟡 ほぼ互角の交換です'; jColor = 'var(--primary-yellow)'; }
+            }
+
+            // 手順ガイド
+            const s1 = myTradeOk ? 'done' : 'on';
+            const s2 = myTradeOk ? 'done' : (giveCount > 0 || peerSelectedTradeChars.length > 0 ? 'on' : '');
+            const s3 = myTradeOk ? 'on' : '';
+
+            // レア度フィルタ
+            const rarityList = ['すべて', 'アンコモン', 'レア', 'レジェンド', 'ゴット', 'シークレット', 'サンダー'];
+            let filterHtml = "";
+            rarityList.forEach(r => {
+                const key = (r === 'すべて') ? 'all' : r;
+                const on = (tradeFilter === key) ? 'on' : '';
+                filterHtml += `<button class="${on}" onclick="setTradeFilter('${key}')">${r}</button>`;
+            });
+
+            // 選択リスト
+            let pickHtml = "";
+            let shown = 0;
+            baseItems.forEach((itemStr, index) => {
+                const d = tradeCharInfo(itemStr);
+                if (tradeFilter !== 'all' && d.info.rarity !== tradeFilter) return;
+                shown++;
+                const sel = mySelectedTradeIndices.includes(index) ? 'sel' : '';
+                const lock = myTradeOk ? 'locked' : '';
+                pickHtml += `
+                    <div class="tr2-pick-item ${sel} ${lock}" onclick="selectTradeChar(${index})" title="${d.info.name}（${d.info.rarity}）">
+                        <img src="${d.info.img}" class="${d.fx}" alt="${d.info.name}">
+                        <div class="tr2-name" style="color:${d.info.color || '#fff'};">${d.info.name}</div>
+                        <div class="tr2-rar" style="color:${d.info.color || '#aaa'};">${d.info.rarity}</div>
+                        <div class="tr2-tags">${d.tags}</div>
+                    </div>`;
+            });
+            if (shown === 0) {
+                pickHtml = `<div style="grid-column:1/-1; color:#777; font-size:0.85em; padding:24px;">${baseItems.length === 0 ? '基地にキャラクターがいません' : 'この絞り込みに合うキャラクターがいません'}</div>`;
+            }
+
+            // OKボタン
+            let okLabel, okClass = "", okDisabled = "";
+            if (over) {
+                okLabel = '⚠ 基地の枠が足りません（' + after + ' / ' + maxCap + '）';
+                okDisabled = 'disabled';
+            } else if (myTradeOk) {
+                okLabel = '✔ OK済み！相手を待っています<br><span style="font-size:0.75em; font-weight:normal;">押すと解除して選び直せます</span>';
+                okClass = 'on';
+            } else {
+                okLabel = '✅ この内容でOK！<br><span style="font-size:0.75em; font-weight:normal;">お互いOKで即交換されます</span>';
+            }
+
+            return `
+            <div class="tr2">
+                <h2 class="tr2-title">トレード中</h2>
+                <div class="tr2-bar">
+                    <span class="tr2-chip" style="color:var(--primary-green);">🟢 接続中（1対1）</span>
+                    <span class="tr2-chip" style="color:var(--primary-yellow);">部屋番号 ${currentRoomCode || '----'}</span>
+                    <span class="tr2-chip" style="color:${over ? '#ff6b6b' : 'var(--primary-cyan)'};">基地 ${baseItems.length} → <b>${after}</b> / ${maxCap}</span>
+                    <span class="tr2-chip" style="color:${jColor};">${judge}</span>
+                </div>
+
+                <div class="tr2-steps">
+                    <div class="tr2-step ${s1}"><b>① キャラを選ぶ</b>下のリストからタップ</div>
+                    <div class="tr2-step ${s2}"><b>② OKを押す</b>内容を確認して決定</div>
+                    <div class="tr2-step ${s3}"><b>③ 相手もOKで成立</b>自動で交換されます</div>
+                </div>
+
+                ${buildTradeNoticeHtml()}
+
+                <div class="tr2-board">
+                    <div class="tr2-panel mine">
+                        <h4 style="color:var(--primary-cyan);">👤 あなたが出す（${giveCount}体）</h4>
+                        <p class="tr2-sub">合計の参考価値：$${formatMoney(myValue)}</p>
+                        <div class="tr2-offer">${mineHtml}</div>
+                    </div>
+                    <div class="tr2-swap">
+                        <div class="ico">⇄</div>
+                        <div>こうかん</div>
+                    </div>
+                    <div class="tr2-panel">
+                        <h4 style="color:var(--primary-pink);">🧑 相手が出す（${peerSelectedTradeChars.length}体）</h4>
+                        <p class="tr2-sub">合計の参考価値：$${formatMoney(peerValue)}</p>
+                        <div class="tr2-offer">${peerHtml}</div>
+                    </div>
+                </div>
+
+                <div class="tr2-picker">
+                    <div class="tr2-picker-head">
+                        <div style="font-size:0.85em; color:var(--primary-cyan); font-weight:bold;">
+                            📦 あなたの基地から選ぶ（選択中 ${giveCount} / ${baseItems.length}体）
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="tr2-mini" onclick="clearTradeSelection()" ${myTradeOk ? 'disabled' : ''} style="border-color:#ff8888; color:#ff8888;">選択をすべて解除</button>
+                        </div>
+                    </div>
+                    <div class="tr2-filters">${filterHtml}</div>
+                    <div class="tr2-pick" id="tr2-pick">${pickHtml}</div>
+                    ${myTradeOk ? '<div style="font-size:0.78em; color:var(--primary-yellow); margin-top:8px;">🔒 OK中は変更できません。変更したい場合は下のOKボタンをもう一度押して解除してください。</div>' : ''}
+                </div>
+
+                <div class="tr2-confirm">
+                    <button class="tr2-okbtn ${okClass}" onclick="toggleMyOk()" ${okDisabled}>${okLabel}</button>
+                    <div class="tr2-peerstat ${peerTradeOk ? 'ok' : ''}">
+                        ${peerTradeOk ? '✔ 相手：OK済み' : '⏳ 相手：選択中…'}
+                        <span style="font-size:0.75em; font-weight:normal; margin-top:4px;">
+                            ${peerTradeOk ? 'あなたがOKすれば成立！' : '相手の準備を待っています'}
+                        </span>
+                    </div>
+                </div>
+
+                ${over ? '<div style="margin-top:10px; color:#ff6b6b; font-size:0.85em; font-weight:bold;">⚠ 交換後の基地が上限を超えます。出すキャラを増やすか、基地を整理／リバースで枠を広げてください。</div>' : ''}
+
+                <br>
+                <button onclick="cancelTrade()" style="border-color:#ff4444; color:#ff4444; font-size:0.85em; padding:10px 18px;">トレード中止（部屋を出る）</button>
+            </div>`;
+        }
+
+        // --- 成立画面 ---
+        function buildTradeResultHtml() {
+            const gave = (tradeLastResult && tradeLastResult.gave) || [];
+            const got = (tradeLastResult && tradeLastResult.got) || [];
+
+            let gaveHtml = gave.length ? gave.map(buildTradeCard).join('') : '<div class="tr2-empty">なし</div>';
+            let gotHtml = got.length ? got.map(buildTradeCard).join('') : '<div class="tr2-empty">なし</div>';
+
+            return `
+            <div class="tr2">
+                <h2 class="tr2-done-title">🎉 トレード成立！</h2>
+                <p style="font-size:0.9em; color:var(--primary-cyan); margin-top:0;">キャラクターは基地に反映されました（保存済み）</p>
+                <div class="tr2-board">
+                    <div class="tr2-panel mine" style="border-color:#ff8888;">
+                        <h4 style="color:#ff8888;">📤 渡したキャラ（${gave.length}体）</h4>
+                        <div class="tr2-offer">${gaveHtml}</div>
+                    </div>
+                    <div class="tr2-swap"><div class="ico">➡</div><div>こうかん</div></div>
+                    <div class="tr2-panel" style="border-color:var(--primary-green);">
+                        <h4 style="color:var(--primary-green);">📥 受け取ったキャラ（${got.length}体）</h4>
+                        <div class="tr2-offer">${gotHtml}</div>
+                    </div>
+                </div>
+                <p style="font-size:0.95em; color:#fff; margin-top:14px;">現在の基地：<b style="color:var(--primary-yellow);">${baseItems.length} / ${getMaxBaseCapacity()}</b></p>
+                <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:6px;">
+                    <button onclick="tradeAgain()" style="border-color:var(--primary-cyan); color:var(--primary-cyan); padding:12px 20px;">もう一度トレードする</button>
+                    <button onclick="showBaseMenu()" style="border-color:var(--primary-pink); color:var(--primary-pink); padding:12px 20px;">基地を確認する</button>
+                    <button onclick="closeTradeResult()" style="padding:12px 20px;">閉じる</button>
+                </div>
+            </div>`;
+        }
+
+        function tradeAgain() {
+            audioSynth.playClick();
+            tradeLastResult = null;
+            resetTradeState();
+            setupPeer();
+            tradeNotice = "";
+            renderTradeUI();
+        }
+
+        function closeTradeResult() {
+            audioSynth.playClick();
+            tradeLastResult = null;
+            tradeFinalized = false;
+            modal.style.display = 'none';
+        }
+
+        function setTradeFilter(r) {
+            audioSynth.playClick();
+            tradeFilter = r;
+            tradePickScroll = 0;
+            renderTradeUI();
+        }
+
+        /* ---------- 操作 ---------- */
+        function selectTradeChar(index) {
+            if (tradeFinalized) return;
+            if (myTradeOk) {
+                tradeSetNotice('🔒 OK中は内容を変更できません。OKボタンをもう一度押して解除してください。', 'var(--primary-yellow)');
+                renderTradeUI();
+                return;
+            }
+            audioSynth.playClick();
+            if (index < 0 || index >= baseItems.length) return;
+            const pos = mySelectedTradeIndices.indexOf(index);
+            if (pos > -1) mySelectedTradeIndices.splice(pos, 1);
+            else mySelectedTradeIndices.push(index);
+            mySelectedTradeIndices.sort((a, b) => a - b);
             if (activeConn) {
-                activeConn.send({ type: 'SELECT_CHARS', chars: mySelectedTradeIndices.map(i => baseItems[i]) });
+                try { activeConn.send({ type: 'SELECT_CHARS', chars: mySelectedTradeIndices.map(i => baseItems[i]).filter(v => v !== undefined) }); } catch(e){}
             }
+            renderTradeUI();
+        }
+
+        function clearTradeSelection() {
+            if (tradeFinalized || myTradeOk) return;
+            audioSynth.playClick();
+            mySelectedTradeIndices = [];
+            if (activeConn) { try { activeConn.send({ type: 'SELECT_CHARS', chars: [] }); } catch(e){} }
             renderTradeUI();
         }
 
         function toggleMyOk() {
+            if (tradeFinalized) return;
+            const maxCap = getMaxBaseCapacity();
+            const giveCount = mySelectedTradeIndices.filter(i => baseItems[i] !== undefined).length;
+            const after = baseItems.length - giveCount + peerSelectedTradeChars.length;
+            if (!myTradeOk && after > maxCap) {
+                tradeSetNotice('基地の枠が足りません（交換後 ' + after + ' / ' + maxCap + '）。出すキャラを増やすか基地を整理してください。', '#ff6b6b');
+                renderTradeUI();
+                return;
+            }
             audioSynth.playClick();
             myTradeOk = !myTradeOk;
             if (activeConn) {
-                activeConn.send({ type: 'TOGGLE_OK', ok: myTradeOk });
+                try {
+                    activeConn.send({
+                        type: 'TOGGLE_OK', ok: myTradeOk,
+                        mine: myTradeOffer(),                  // 自分が出す物
+                        theirs: peerSelectedTradeChars.slice()  // 自分に見えている相手の物
+                    });
+                } catch(e){}
             }
+            tradeSetNotice(myTradeOk ? 'OKしました。相手のOKを待っています…' : 'OKを解除しました。選び直せます。',
+                           myTradeOk ? 'var(--primary-green)' : 'var(--primary-yellow)');
             renderTradeUI();
             checkAndExecuteTrade();
         }
 
+        /* ---------- ★交換の実行（バグ修正の中心） ---------- */
         function checkAndExecuteTrade() {
-            if (myTradeOk && peerTradeOk && activeConn) {
-                let maxCap = getMaxBaseCapacity();
-                let newTotal = baseItems.length - mySelectedTradeIndices.length + peerSelectedTradeChars.length;
-                
-                if (newTotal > maxCap) {
-                    myTradeOk = false;
-                    peerTradeOk = false;
-                    activeConn.send({ type: 'TOGGLE_OK', ok: false });
-                    alert("基地の容量が足りないため、トレードを完了できません。");
-                    renderTradeUI();
-                    return;
-                }
+            if (tradeFinalized) return;
+            if (!(myTradeOk && peerTradeOk && activeConn)) return;
 
-                // 進行中UIの表示（この間は操作を受け付けない）
-                modalBody.innerHTML = `
-                    <h2 style="color:var(--primary-green); margin-top: 50px; font-size: 2em; text-shadow: 0 0 20px var(--primary-green);">トレード成立！</h2>
-                    <p style="color:#fff; font-size:1.2em;" class="pulse-text">キャラクターを交換しています...</p>
-                `;
+            const maxCap = getMaxBaseCapacity();
+            const giveIdx = mySelectedTradeIndices.filter(i => baseItems[i] !== undefined);
+            const getList = peerSelectedTradeChars.slice();
+            const after = baseItems.length - giveIdx.length + getList.length;
 
-                // 通信同期のタイムラグを考慮し少し待ってから実行
-                setTimeout(() => {
-                    // 自分が出すキャラを削除（インデックスがずれないよう降順で処理）
-                    mySelectedTradeIndices.sort((a,b) => b - a).forEach(idx => {
-                        baseItems.splice(idx, 1);
-                    });
-
-                    // 相手からもらったキャラを追加
-                    peerSelectedTradeChars.forEach(charStr => {
-                        baseItems.push(charStr);
-                        let pParts = charStr.split(':');
-                        unlockedCharacters[pParts[0] + ":" + (pParts[1] || 'normal')] = true;
-                    });
-
-                    saveState();
-                    updateUI();
-                    audioSynth.playJackpot();
-
-                    completeTrade();
-                }, 1000);
+            if (after > maxCap) {
+                myTradeOk = false;
+                peerTradeOk = false;
+                try { activeConn.send({ type: 'TOGGLE_OK', ok: false }); } catch(e){}
+                tradeSetNotice('基地の枠が足りないため交換できませんでした（' + after + ' / ' + maxCap + '）。', '#ff6b6b');
+                renderTradeUI();
+                return;
             }
+
+            // ★ここで確定。以降、相手からのCANCEL・切断では在庫を巻き戻さない
+            tradeFinalized = true;
+            try { activeConn.send({ type: 'TRADE_EXEC' }); } catch(e){}
+            applyTradeSwap(giveIdx, getList);
         }
 
-        function completeTrade() {
-            if (activeConn) {
-                try { activeConn.send({ type: 'TRADE_SUCCESS' }); } catch(e){}
-            }
-            // 少し待ってから切断・初期化して成功画面を表示
+        // スナップショットを使って即座に交換を反映（タイマー待ちをやめたのが修正点）
+        function applyTradeSwap(giveIdx, getList) {
+            const gave = giveIdx.map(i => baseItems[i]).filter(v => typeof v === 'string');
+
+            // 出すキャラを削除（インデックスがずれないよう降順で）
+            giveIdx.slice().sort((a, b) => b - a).forEach(idx => {
+                if (idx >= 0 && idx < baseItems.length) baseItems.splice(idx, 1);
+            });
+
+            // 受け取るキャラを追加（変異・バフもそのまま／図鑑も解放）
+            const got = [];
+            getList.forEach(charStr => {
+                if (typeof charStr !== 'string' || !charStr) return;
+                baseItems.push(charStr);
+                const p = charStr.split(':');
+                unlockedCharacters[p[0] + ":" + (p[1] || 'normal')] = true;
+                got.push(charStr);
+            });
+
+            saveState();
+            updateUI();
+            try { audioSynth.playJackpot(); } catch(e){}
+
+            tradeLastResult = { gave: gave, got: got };
+            tradeNotice = "";
+            if (tradeNoticeTimer) clearTimeout(tradeNoticeTimer);
+
+            // 相手に完了を伝えてから静かに切断（このとき CANCEL は送らない）
+            if (activeConn) { try { activeConn.send({ type: 'TRADE_DONE' }); } catch(e){} }
             setTimeout(() => {
-                resetTradeState();
+                if (activeConn) { try { activeConn.close(); } catch(e){} activeConn = null; }
+                mySelectedTradeIndices = [];
+                peerSelectedTradeChars = [];
+                myTradeOk = false;
+                peerTradeOk = false;
+                currentRoomCode = null;
+                isHost = false;
                 setupPeer();
-                closeModal();
-                showTradeSuccessModal();
-            }, 300);
-        }
+            }, 900);
 
-        function showTradeSuccessModal() {
-            modal.style.display = 'block';
-            modalBody.innerHTML = `
-                <h2 style="color:var(--primary-green); text-shadow: 0 0 15px var(--primary-green); font-size: 2em;">🎉 トレード完了！</h2>
-                <p style="color:#fff; font-size:1.2em; margin:20px 0;">キャラクターの交換が正常に完了しました。<br>基地で新しいキャラクターを確認してください。</p>
-                <button onclick="closeModal()" style="font-size:1.1em; padding:12px 30px; border-color:var(--primary-green); color:var(--primary-green); font-weight:bold;">確認</button>
-            `;
+            renderTradeUI();
         }
 
         function cancelTrade() {
             audioSynth.playClick();
-            if (activeConn) {
+            if (activeConn && !tradeFinalized) {
                 try { activeConn.send({ type: 'CANCEL' }); } catch(e){}
             }
             resetTradeState();
@@ -2004,6 +2567,7 @@
             if (activeConn || currentRoomCode) {
                 cancelTrade();
             }
+            tradeLastResult = null; // ★トレード成立画面を閉じたら結果を掃除
             modal.style.display = 'none';
         }
 
@@ -2205,103 +2769,129 @@
                 
                 <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap;">
                     <button onclick="sellCharacter(${index}, ${sellPrice})" style="border-color:#ff4444; color:#ff4444;">売る ($${formatMoney(sellPrice)})</button>
-                    <button onclick="applyBuffToCharacter(${index})" style="border-color:#00ffcc; color:#00ffcc;">バフ付与</button>
-                    <button onclick="showBaseMenu()">戻る</button>
+                    <button onclick="applyBuffToCharacter(${index})" style="border-color:#00ffcc; color:#00ffcc;" ${buffType !== 'none' ? 'disabled' : ''}>バフ付与を試みる</button>
+                </div>
+                
+                <div style="margin-top: 25px;">
+                    <button onclick="showBaseMenu()" style="font-size:0.85em; padding:10px 15px;">基地へ戻る</button>
                 </div>
             `;
         }
 
         function sellCharacter(index, price) {
             audioSynth.playClick();
-            baseItems.splice(index, 1);
-            money += price;
-            saveState();
-            updateUI();
-            showBaseMenu();
-        }
-
-        function clearAllCharacters() {
-            audioSynth.playClick();
-            if (confirm(t('confirmClearAll'))) {
-                let totalEarned = 0;
-                baseItems.forEach(itemStr => {
-                    let parts = itemStr.split(':');
-                    let charId = parts[0];
-                    let mutType = parts[1] || 'normal';
-                    let charInfo = characters.find(c => c.id === charId) || characters[0];
-                    let sellPrice = 100;
-                    if (charInfo.rarity === 'ゴット') sellPrice = 2000;
-                    if (charInfo.rarity === 'レジェンド') sellPrice = 800;
-                    if (charInfo.rarity === 'シークレット') sellPrice = 3000;
-                    if (charInfo.rarity === 'サンダー') sellPrice = 5000;
-                    
-                    if (mutType === 'gold') sellPrice *= 3;
-                    if (mutType === 'diamond') sellPrice *= 10;
-                    if (mutType === 'rainbow') sellPrice *= 50;
-                    
-                    totalEarned += sellPrice;
-                });
-                
-                baseItems = [];
-                money += totalEarned;
+            if (confirm(`このキャラクターを売却し、$${formatMoney(price)} を獲得しますか？`)) {
+                baseItems.splice(index, 1);
+                money += price;
                 saveState();
                 updateUI();
                 showBaseMenu();
-                alert(`全てのキャラクターを売却し、合計 $${formatMoney(totalEarned)} を獲得しました。`);
             }
         }
 
         function applyBuffToCharacter(index) {
             audioSynth.playClick();
-            let currentBuffProb = getBaseBuffProbability();
-            
-            if (Math.random() * 100 < currentBuffProb) {
-                const buffType = Math.random() > 0.5 ? 'thunder' : 'water';
-                let itemStr = baseItems[index];
-                let parts = itemStr.split(':');
-                parts[2] = buffType;
-                baseItems[index] = parts.join(':');
-                
-                saveState();
-                audioSynth.playJackpot();
-                alert(`バフ付与成功！ (${buffType === 'thunder' ? '雷' : 'ウォーター'}バフ)`);
-            } else {
-                alert("バフ付与に失敗しました...");
+            let itemStr = baseItems[index];
+            let parts = itemStr.split(':');
+            let charId = parts[0];
+            let mutType = parts[1] || 'normal';
+            let buffType = parts[2] || 'none';
+
+            if (buffType !== 'none') {
+                return;
             }
-            manageBaseCharacter(index);
+
+            let currentProb = getBaseBuffProbability();
+            let rand = Math.random() * 100;
+
+            if (rand < currentProb) {
+                let newBuff = Math.random() < 0.5 ? 'thunder' : 'water';
+                baseItems[index] = `${charId}:${mutType}:${newBuff}`;
+                saveState();
+                manageBaseCharacter(index); 
+            }
+        }
+
+        function clearAllCharacters() {
+            audioSynth.playClick();
+            if (baseItems.length > 0) {
+                if (confirm(t('confirmClearAll'))) {
+                    let totalMoney = 0;
+                    for (let i = 0; i < baseItems.length; i++) {
+                        let parts = baseItems[i].split(':');
+                        let charInfo = characters.find(c => c.id === parts[0]) || characters[0];
+                        let mutType = parts[1] || 'normal';
+                        
+                        let sellPrice = 100;
+                        if (charInfo.rarity === 'ゴット') sellPrice = 2000;
+                        if (charInfo.rarity === 'レジェンド') sellPrice = 800;
+                        if (charInfo.rarity === 'シークレット') sellPrice = 3000;
+                        if (charInfo.rarity === 'サンダー') sellPrice = 5000;
+                        if (mutType === 'gold') sellPrice *= 3;
+                        if (mutType === 'diamond') sellPrice *= 10;
+                        if (mutType === 'rainbow') sellPrice *= 50;
+                        
+                        totalMoney += sellPrice;
+                    }
+                    money += totalMoney;
+                    baseItems = [];
+                    saveState();
+                    updateUI();
+                    showBaseMenu();
+                }
+            }
         }
 
         function showSettingsMenu() {
             audioSynth.playClick();
             modalBody.innerHTML = `
-                <h2>${t('settingsTitle')}</h2>
+                <h2 style="color:#ffd700;">${t('settingsTitle')}</h2>
                 
+                <div class="settings-row">
+                    <span>自分のID (6桁の数字)</span>
+                    <input type="text" id="setting-user-id" value="${myUserId}" maxlength="6" style="width:160px; text-align:center;" onchange="updateMyUserId(this.value)">
+                </div>
+
                 <div class="settings-row">
                     <span>${t('langLabel')}</span>
-                    <select id="lang-select" onchange="changeLanguage(this.value)">
+                    <select id="setting-lang" onchange="changeLanguage(this.value)">
                         <option value="ja" ${currentLang === 'ja' ? 'selected' : ''}>日本語 (Japanese)</option>
-                        <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English (英語)</option>
+                        <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option>
                     </select>
                 </div>
-                
+
                 <div class="settings-row">
                     <span>${t('soundLabel')}</span>
-                    <select id="sound-select" onchange="toggleSound(this.value)">
+                    <select id="setting-sound" onchange="changeSoundSetting(this.value)">
                         <option value="true" ${isSoundEnabled ? 'selected' : ''}>${t('soundOn')}</option>
                         <option value="false" ${!isSoundEnabled ? 'selected' : ''}>${t('soundOff')}</option>
                     </select>
                 </div>
-                
+
                 <div class="settings-row">
                     <span>${t('bgmLabel')}</span>
-                    <select id="bgm-select" onchange="toggleBgm(this.value)">
+                    <select id="setting-bgm" onchange="changeBgmSetting(this.value)">
                         <option value="true" ${isBgmEnabled ? 'selected' : ''}>${t('soundOn')}</option>
                         <option value="false" ${!isBgmEnabled ? 'selected' : ''}>${t('soundOff')}</option>
                     </select>
                 </div>
-                
-                <button onclick="openMenu()" style="margin-top:20px;">${t('backBtn')}</button>
+
+                <br>
+                <button onclick="openMenu()" style="font-size:0.85em; padding:10px 20px;">${t('backBtn')}</button>
             `;
+        }
+
+        function updateMyUserId(val) {
+            const cleanVal = val.trim();
+            if (/^\d{6}$/.test(cleanVal)) {
+                if (cleanVal !== myUserId) {
+                    myUserId = cleanVal;
+                    saveState();
+                    setupPeer();
+                }
+            } else {
+                document.getElementById('setting-user-id').value = myUserId;
+            }
         }
 
         function changeLanguage(lang) {
@@ -2311,134 +2901,109 @@
             showSettingsMenu();
         }
 
-        function toggleSound(val) {
+        function changeSoundSetting(val) {
             isSoundEnabled = (val === 'true');
             saveState();
+            showSettingsMenu();
         }
 
-        function toggleBgm(val) {
+        function changeBgmSetting(val) {
             isBgmEnabled = (val === 'true');
             saveState();
             const bgm = document.getElementById('bgm-audio');
-            if (isBgmEnabled) {
-                bgm.play().catch(()=>{});
-            } else {
-                bgm.pause();
-            }
+            if (isBgmEnabled) bgm.play().catch(()=>{});
+            else bgm.pause();
+            showSettingsMenu();
         }
 
-        // --- 管理者パネル用関数群 ---
-        function switchAdminTab(tabId, event) {
+        /* --- 管理者パネル用関数 --- */
+        function switchAdminTab(tabId, e) {
+            audioSynth.playClick();
             document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
             document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+            if(e && e.target) e.target.classList.add('active');
             document.getElementById(tabId).classList.add('active');
         }
 
         function closeAdmin() {
+            audioSynth.playClick();
             document.getElementById('admin-panel').style.display = 'none';
         }
 
         function addAdminItem(type) {
+            audioSynth.playClick();
             if (type === 'money') {
-                const amount = parseInt(document.getElementById('admin-add-money').value) || 0;
-                money += amount;
-                updateUI();
-                saveState();
-                alert(`お金を ${amount}$ 追加しました。`);
+                const val = parseInt(document.getElementById('admin-add-money').value) || 0;
+                money += val;
             }
-        }
-
-        function toggleInfinite(isChecked) {
-            isInfiniteSpin = isChecked;
+            saveState();
             updateUI();
         }
 
-        function updateLuck() {
-            const multi = parseFloat(document.getElementById('admin-luck-multi').value) || 1;
-            const sec = parseInt(document.getElementById('admin-luck-time').value) || 0;
-            if (multi >= 1 && sec > 0) {
-                luckMultiplier = multi;
-                luckEndTime = Date.now() + (sec * 1000);
-                updateStatusEffects();
-                alert(`ラックを ${multi}倍 に設定しました (${sec}秒)`);
-            }
+        function toggleInfinite(checked) {
+            audioSynth.playClick();
+            isInfiniteSpin = checked;
         }
 
-        function updateMutationProb() {
-            const prob = parseFloat(document.getElementById('admin-prob-mutation').value);
-            if (prob >= 0 && prob <= 100) {
-                mutationProb = prob;
-                alert(`基本バフ付与確率を ${prob}% に設定しました`);
-            }
+        function updateLuck() {
+            audioSynth.playClick();
+            const multi = parseFloat(document.getElementById('admin-luck-multi').value) || 1;
+            const sec = parseInt(document.getElementById('admin-luck-time').value) || 60;
+            luckMultiplier = multi;
+            luckEndTime = Date.now() + (sec * 1000);
+            updateStatusEffects();
         }
 
         function activateMutation() {
+            audioSynth.playClick();
             const type = document.getElementById('admin-mutation-type').value;
-            const sec = parseInt(document.getElementById('admin-mutation-time').value) || 0;
-            if (sec > 0) {
-                activeMutations[type] = Date.now() + (sec * 1000);
-                updateStatusEffects();
-                alert(`${type === 'thunder' ? '雷' : 'ウォーター'}バフを全体発動しました (${sec}秒)`);
-            }
+            const sec = parseInt(document.getElementById('admin-mutation-time').value) || 60;
+            activeMutations[type] = Date.now() + (sec * 1000);
+            updateStatusEffects();
+        }
+
+        function updateMutationProb() {
+            audioSynth.playClick();
+            const prob = parseFloat(document.getElementById('admin-prob-mutation').value) || 10;
+            mutationProb = prob;
         }
 
         function showAdminCharList() {
+            audioSynth.playClick();
             modal.style.display = 'block';
-            let listHtml = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:10px; max-height:400px; overflow-y:auto;">';
+            let html = '<h2 style="color:#00ffcc; margin-bottom:15px;">基地にキャラクターを追加</h2><div style="display:flex; flex-wrap:wrap; justify-content:center; gap:15px; max-height:500px; overflow-y:auto; padding:15px;">';
             characters.forEach(c => {
-                listHtml += `
-                    <div style="background:#000; border:1px solid ${c.color}; padding:5px; text-align:center; border-radius:4px; cursor:pointer;" onclick="adminAddChar('${c.id}')">
-                        <img src="${c.img}" style="width:60px; height:60px; object-fit:contain;">
-                        <div style="font-size:0.75em; color:${c.color}; margin-top:5px;">${c.name}</div>
-                        <div style="font-size:0.7em; color:#fff;">追加</div>
+                html += `
+                    <div style="background:rgba(0,0,0,0.8); padding:15px; border:1px solid ${c.color}; border-radius:5px; text-align:center; min-width: 140px;">
+                        <img src="${c.img}" style="width:70px; height:70px; object-fit:contain; filter:drop-shadow(0 0 5px ${c.color});"><br>
+                        <div style="color:${c.color}; font-size:0.9em; margin: 8px 0; font-weight:bold; word-wrap:break-word;">${c.name}</div>
+                        <div style="font-size:0.75em; color:#ddd; margin-bottom:6px;">レア度: ${c.rarity}</div>
+                        <div style="display:flex; flex-direction:column; gap:5px;">
+                            <button onclick="addSpecificCharToBase('${c.id}', 'normal')" style="padding:6px; font-size:0.8em;">通常追加</button>
+                            <button onclick="addSpecificCharToBase('${c.id}', 'gold')" style="padding:6px; font-size:0.8em; color:gold; border-color:gold;">GOLD追加</button>
+                            <button onclick="addSpecificCharToBase('${c.id}', 'diamond')" style="padding:6px; font-size:0.8em; color:cyan; border-color:cyan;">DIAMOND追加</button>
+                            <button onclick="addSpecificCharToBase('${c.id}', 'rainbow')" style="padding:6px; font-size:0.8em; color:#ff00ff; border-color:#ff00ff;">RAINBOW追加</button>
+                        </div>
                     </div>
                 `;
             });
-            listHtml += '</div>';
-
-            modalBody.innerHTML = `
-                <h2 style="color:#00ffcc;">[ADMIN] キャラ強制追加</h2>
-                <p style="font-size:0.9em; color:#aaa;">クリックで基地に直接追加します（最大枠を超えて追加可能）</p>
-                ${listHtml}
-                <button onclick="closeModal()" style="margin-top:15px; border-color:#00ffcc; color:#00ffcc;">閉じる</button>
-            `;
+            html += '</div>';
+            modalBody.innerHTML = html;
         }
 
-        function adminAddChar(charId) {
-            let mutation = rollMutation();
+        // キャラクター出現メッセージを表示せずにサイレント追加する関数
+        function addSpecificCharToBase(charId, mutation = 'normal') {
+            audioSynth.playClick();
+            if (baseItems.length >= getMaxBaseCapacity()) {
+                return;
+            }
             let storeId = charId + ":" + mutation + ":none";
             baseItems.push(storeId);
             unlockedCharacters[charId + ":" + mutation] = true;
             saveState();
-            audioSynth.playClick();
-            alert(`ID: ${charId} を基地に追加しました！`);
+            updateUI();
+            // メッセージ(alert)表示を排除
         }
-
-        // 管理者パネルのドラッグ移動機能
-        const adminPanel = document.getElementById('admin-panel');
-        const adminHeader = document.getElementById('admin-header');
-        let isDragging = false;
-        let dragOffsetX = 0;
-        let dragOffsetY = 0;
-
-        adminHeader.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            dragOffsetX = e.clientX - adminPanel.offsetLeft;
-            dragOffsetY = e.clientY - adminPanel.offsetTop;
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                adminPanel.style.left = (e.clientX - dragOffsetX) + 'px';
-                adminPanel.style.top = (e.clientY - dragOffsetY) + 'px';
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
-
     </script>
 </body>
 </html>
