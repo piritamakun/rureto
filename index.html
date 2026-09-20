@@ -625,47 +625,69 @@
             box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.15);
         }
         
+        /* トレード画面：選んだキャラの表示エリアを大きく */
         .trade-slot-display {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 5px;
+            align-items: center;
+            gap: 10px;
             width: 100%;
-            min-height: 60px;
-            max-height: 120px;
+            min-height: 120px;
+            max-height: 200px;
             overflow-y: auto;
             margin-bottom: 10px;
             background: rgba(255,255,255,0.05);
-            padding: 5px;
+            padding: 10px;
             border-radius: 4px;
         }
 
+        /* トレード画面：手持ちリストのグリッドとアイテム */
         .trade-char-select {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
             gap: 8px;
             width: 100%;
-            max-height: 150px;
+            max-height: 200px;
             overflow-y: auto;
             margin-top: 10px;
             background: rgba(0, 20, 30, 0.5);
-            padding: 8px;
+            padding: 10px;
             border-radius: 4px;
         }
-        .trade-char-item {
-            width: 50px;
-            height: 50px;
+        
+        .trade-char-item-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             cursor: pointer;
             border: 2px solid transparent;
-            border-radius: 4px;
-            padding: 2px;
+            border-radius: 6px;
+            padding: 5px;
             transition: all 0.2s;
+            background: rgba(0,0,0,0.5);
         }
-        .trade-char-item:hover { filter: brightness(1.2); }
-        .trade-char-item.selected {
+        .trade-char-item-wrapper:hover { filter: brightness(1.2); transform: scale(1.05); }
+        .trade-char-item-wrapper.selected {
             border-color: var(--primary-green);
-            box-shadow: 0 0 10px var(--primary-green);
+            box-shadow: 0 0 15px var(--primary-green);
             background: rgba(0, 255, 102, 0.2);
+        }
+        .trade-char-item-img {
+            width: 55px;
+            height: 55px;
+            object-fit: contain;
+        }
+        .trade-char-item-name {
+            font-size: 0.65em;
+            color: #fff;
+            margin-top: 5px;
+            text-align: center;
+            line-height: 1.2;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         /* トレード左側の強調OKボタン */
@@ -1058,15 +1080,27 @@
                     renderTradeUI();
                 } else if (data.type === 'SELECT_CHARS') {
                     peerSelectedTradeChars = data.chars || [];
+                    
+                    // お互いの変更があったら安全のために両方のOKを外す
                     peerTradeOk = false;
+                    myTradeOk = false;
+                    if (activeConn) {
+                        try { activeConn.send({ type: 'TOGGLE_OK', ok: false }); } catch(e){}
+                    }
                     renderTradeUI();
                 } else if (data.type === 'TOGGLE_OK') {
                     peerTradeOk = data.ok;
                     renderTradeUI();
                     checkAndExecuteTrade();
+                } else if (data.type === 'TRADE_SUCCESS') {
+                    // 相手からの完了通知。ローカルでも完了処理が進んでいるため無視でOK。
                 } else if (data.type === 'CANCEL') {
-                    resetTradeState();
-                    renderTradeUI();
+                    // トレード処理中でなければキャンセルを受け入れる
+                    if (!(myTradeOk && peerTradeOk)) {
+                        alert("相手との通信が切断されました。");
+                        resetTradeState();
+                        renderTradeUI();
+                    }
                 }
             });
 
@@ -1630,10 +1664,10 @@
                         <h2 style="color:var(--primary-pink);">P2P 1対1 トレードルーム</h2>
                         <div style="background:rgba(0, 255, 255, 0.08); border:1px solid var(--primary-cyan); padding:20px; border-radius:8px; margin:20px 0;">
                             <p style="font-size:1em; color:#fff; margin:0 0 10px;">あなたの部屋番号 (4桁)</p>
-                            <div style="font-size:2.8em; font-weight:bold; color:var(--primary-yellow); letter-spacing:6px; text-shadow:0 0 15px var(--primary-yellow); margin:10px 0;">
+                            <div style="font-size:3.5em; font-weight:bold; color:var(--primary-yellow); letter-spacing:8px; text-shadow:0 0 15px var(--primary-yellow); margin:15px 0;">
                                 ${currentRoomCode}
                             </div>
-                            <p style="font-size:0.85em; color:var(--primary-cyan); margin-top:15px;" class="pulse-text">相手の参加を待っています... (一対一)</p>
+                            <p style="font-size:0.9em; color:var(--primary-cyan); margin-top:15px;" class="pulse-text">相手の参加を待っています... (一対一)</p>
                         </div>
                         <button onclick="cancelTrade()" style="font-size:0.85em; padding:8px 16px; border-color:#ff4444; color:#ff4444;">部屋を閉じる</button>
                     `;
@@ -1668,34 +1702,47 @@
                     `;
                 }
             } else {
-                // トレード接続中画面
+                // トレード接続中画面：UIを大きくし名前を表示
                 let myCharHtml = "";
                 baseItems.forEach((itemStr, index) => {
                     let parts = itemStr.split(':');
                     let charObj = characters.find(c => c.id === parts[0]) || characters[0];
                     let isSelected = mySelectedTradeIndices.includes(index);
-                    myCharHtml += `<img src="${charObj.img}" class="trade-char-item ${isSelected ? 'selected' : ''}" onclick="selectTradeChar(${index})" title="${charObj.name}">`;
+                    myCharHtml += `
+                        <div class="trade-char-item-wrapper ${isSelected ? 'selected' : ''}" onclick="selectTradeChar(${index})">
+                            <img src="${charObj.img}" class="trade-char-item-img" title="${charObj.name}">
+                            <div class="trade-char-item-name" style="color:${charObj.color || '#fff'};">${charObj.name}</div>
+                        </div>
+                    `;
                 });
 
                 let mySelectedDisplay = "";
                 if (mySelectedTradeIndices.length === 0) {
-                    mySelectedDisplay = "<p style='color:#777; margin:5px 0; font-size:0.9em;'>何も出さずにOK可能</p>";
+                    mySelectedDisplay = "<p style='color:#777; margin:auto; font-size:1em; font-weight:bold;'>【何も出さない】</p>";
                 } else {
                     mySelectedTradeIndices.forEach(idx => {
                         let parts = baseItems[idx].split(':');
                         let charObj = characters.find(c => c.id === parts[0]) || characters[0];
-                        mySelectedDisplay += `<img src="${charObj.img}" style="width:45px; height:45px; object-fit:contain; margin:3px;" title="${charObj.name}">`;
+                        mySelectedDisplay += `
+                        <div style="display:flex; flex-direction:column; align-items:center; margin:5px; background:rgba(0,255,255,0.1); border-radius:4px; padding:5px; border:1px solid ${charObj.color || 'var(--primary-cyan)'};">
+                            <img src="${charObj.img}" style="width:70px; height:70px; object-fit:contain; filter:drop-shadow(0 0 5px ${charObj.color || 'var(--primary-cyan)'});">
+                            <span style="font-size:0.75em; color:${charObj.color || '#fff'}; margin-top:4px; font-weight:bold; text-align:center; max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${charObj.name}</span>
+                        </div>`;
                     });
                 }
 
                 let peerSelectedDisplay = "";
                 if (peerSelectedTradeChars.length === 0) {
-                    peerSelectedDisplay = "<p style='color:#777; margin:5px 0; font-size:0.9em;'>相手はまだ選択していません</p>";
+                    peerSelectedDisplay = "<p style='color:#777; margin:auto; font-size:1em; font-weight:bold;'>【まだ選んでいません】</p>";
                 } else {
                     peerSelectedTradeChars.forEach(charStr => {
                         let parts = charStr.split(':');
                         let charObj = characters.find(c => c.id === parts[0]) || characters[0];
-                        peerSelectedDisplay += `<img src="${charObj.img}" style="width:45px; height:45px; object-fit:contain; margin:3px;" title="${charObj.name}">`;
+                        peerSelectedDisplay += `
+                        <div style="display:flex; flex-direction:column; align-items:center; margin:5px; background:rgba(255,0,255,0.1); border-radius:4px; padding:5px; border:1px solid ${charObj.color || 'var(--primary-pink)'};">
+                            <img src="${charObj.img}" style="width:70px; height:70px; object-fit:contain; filter:drop-shadow(0 0 5px ${charObj.color || 'var(--primary-pink)'});">
+                            <span style="font-size:0.75em; color:${charObj.color || '#fff'}; margin-top:4px; font-weight:bold; text-align:center; max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${charObj.name}</span>
+                        </div>`;
                     });
                 }
 
@@ -1720,7 +1767,7 @@
                             <h4 style="margin:0 0 5px; color:var(--primary-pink);">【相手】(右側)</h4>
                             <div class="trade-slot-display">${peerSelectedDisplay}</div>
                             <div style="margin-top:auto; font-weight:bold; color:${peerTradeOk ? 'var(--primary-green)' : '#777'}; font-size:1.1em; padding:10px;">
-                                ${peerTradeOk ? '✔ 相手: OK済み' : '相手: 準備中...'}
+                                ${peerTradeOk ? '✔ 相手: OK済み' : '相手: 確認中...'}
                             </div>
                         </div>
                     </div>
@@ -1738,7 +1785,10 @@
             } else {
                 mySelectedTradeIndices.push(index);
             }
+            
+            // 安全のため自分と相手のOKを解除
             myTradeOk = false;
+            peerTradeOk = false;
             if (activeConn) {
                 activeConn.send({ type: 'SELECT_CHARS', chars: mySelectedTradeIndices.map(i => baseItems[i]) });
             }
@@ -1759,14 +1809,23 @@
             if (myTradeOk && peerTradeOk && activeConn) {
                 let maxCap = getMaxBaseCapacity();
                 let newTotal = baseItems.length - mySelectedTradeIndices.length + peerSelectedTradeChars.length;
+                
                 if (newTotal > maxCap) {
                     myTradeOk = false;
                     peerTradeOk = false;
                     activeConn.send({ type: 'TOGGLE_OK', ok: false });
+                    alert("基地の容量が足りないため、トレードを完了できません。");
                     renderTradeUI();
                     return;
                 }
 
+                // 進行中UIの表示（この間は操作を受け付けない）
+                modalBody.innerHTML = `
+                    <h2 style="color:var(--primary-green); margin-top: 50px; font-size: 2em; text-shadow: 0 0 20px var(--primary-green);">トレード成立！</h2>
+                    <p style="color:#fff; font-size:1.2em;" class="pulse-text">キャラクターを交換しています...</p>
+                `;
+
+                // 通信同期のタイムラグを考慮し少し待ってから実行
                 setTimeout(() => {
                     // 自分が出すキャラを削除（インデックスがずれないよう降順で処理）
                     mySelectedTradeIndices.sort((a,b) => b - a).forEach(idx => {
@@ -1784,10 +1843,31 @@
                     updateUI();
                     audioSynth.playJackpot();
 
-                    cancelTrade();
-                    closeModal();
-                }, 500);
+                    completeTrade();
+                }, 1000);
             }
+        }
+
+        function completeTrade() {
+            if (activeConn) {
+                try { activeConn.send({ type: 'TRADE_SUCCESS' }); } catch(e){}
+            }
+            // 少し待ってから切断・初期化して成功画面を表示
+            setTimeout(() => {
+                resetTradeState();
+                setupPeer();
+                closeModal();
+                showTradeSuccessModal();
+            }, 300);
+        }
+
+        function showTradeSuccessModal() {
+            modal.style.display = 'block';
+            modalBody.innerHTML = `
+                <h2 style="color:var(--primary-green); text-shadow: 0 0 15px var(--primary-green); font-size: 2em;">🎉 トレード完了！</h2>
+                <p style="color:#fff; font-size:1.2em; margin:20px 0;">キャラクターの交換が正常に完了しました。<br>基地で新しいキャラクターを確認してください。</p>
+                <button onclick="closeModal()" style="font-size:1.1em; padding:12px 30px; border-color:var(--primary-green); color:var(--primary-green); font-weight:bold;">確認</button>
+            `;
         }
 
         function cancelTrade() {
@@ -2125,129 +2205,103 @@
                 
                 <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap;">
                     <button onclick="sellCharacter(${index}, ${sellPrice})" style="border-color:#ff4444; color:#ff4444;">売る ($${formatMoney(sellPrice)})</button>
-                    <button onclick="applyBuffToCharacter(${index})" style="border-color:#00ffcc; color:#00ffcc;" ${buffType !== 'none' ? 'disabled' : ''}>バフ付与を試みる</button>
-                </div>
-                
-                <div style="margin-top: 25px;">
-                    <button onclick="showBaseMenu()" style="font-size:0.85em; padding:10px 15px;">基地へ戻る</button>
+                    <button onclick="applyBuffToCharacter(${index})" style="border-color:#00ffcc; color:#00ffcc;">バフ付与</button>
+                    <button onclick="showBaseMenu()">戻る</button>
                 </div>
             `;
         }
 
         function sellCharacter(index, price) {
             audioSynth.playClick();
-            if (confirm(`このキャラクターを売却し、$${formatMoney(price)} を獲得しますか？`)) {
-                baseItems.splice(index, 1);
-                money += price;
+            baseItems.splice(index, 1);
+            money += price;
+            saveState();
+            updateUI();
+            showBaseMenu();
+        }
+
+        function clearAllCharacters() {
+            audioSynth.playClick();
+            if (confirm(t('confirmClearAll'))) {
+                let totalEarned = 0;
+                baseItems.forEach(itemStr => {
+                    let parts = itemStr.split(':');
+                    let charId = parts[0];
+                    let mutType = parts[1] || 'normal';
+                    let charInfo = characters.find(c => c.id === charId) || characters[0];
+                    let sellPrice = 100;
+                    if (charInfo.rarity === 'ゴット') sellPrice = 2000;
+                    if (charInfo.rarity === 'レジェンド') sellPrice = 800;
+                    if (charInfo.rarity === 'シークレット') sellPrice = 3000;
+                    if (charInfo.rarity === 'サンダー') sellPrice = 5000;
+                    
+                    if (mutType === 'gold') sellPrice *= 3;
+                    if (mutType === 'diamond') sellPrice *= 10;
+                    if (mutType === 'rainbow') sellPrice *= 50;
+                    
+                    totalEarned += sellPrice;
+                });
+                
+                baseItems = [];
+                money += totalEarned;
                 saveState();
                 updateUI();
                 showBaseMenu();
+                alert(`全てのキャラクターを売却し、合計 $${formatMoney(totalEarned)} を獲得しました。`);
             }
         }
 
         function applyBuffToCharacter(index) {
             audioSynth.playClick();
-            let itemStr = baseItems[index];
-            let parts = itemStr.split(':');
-            let charId = parts[0];
-            let mutType = parts[1] || 'normal';
-            let buffType = parts[2] || 'none';
-
-            if (buffType !== 'none') {
-                return;
-            }
-
-            let currentProb = getBaseBuffProbability();
-            let rand = Math.random() * 100;
-
-            if (rand < currentProb) {
-                let newBuff = Math.random() < 0.5 ? 'thunder' : 'water';
-                baseItems[index] = `${charId}:${mutType}:${newBuff}`;
+            let currentBuffProb = getBaseBuffProbability();
+            
+            if (Math.random() * 100 < currentBuffProb) {
+                const buffType = Math.random() > 0.5 ? 'thunder' : 'water';
+                let itemStr = baseItems[index];
+                let parts = itemStr.split(':');
+                parts[2] = buffType;
+                baseItems[index] = parts.join(':');
+                
                 saveState();
-                manageBaseCharacter(index); 
+                audioSynth.playJackpot();
+                alert(`バフ付与成功！ (${buffType === 'thunder' ? '雷' : 'ウォーター'}バフ)`);
+            } else {
+                alert("バフ付与に失敗しました...");
             }
-        }
-
-        function clearAllCharacters() {
-            audioSynth.playClick();
-            if (baseItems.length > 0) {
-                if (confirm(t('confirmClearAll'))) {
-                    let totalMoney = 0;
-                    for (let i = 0; i < baseItems.length; i++) {
-                        let parts = baseItems[i].split(':');
-                        let charInfo = characters.find(c => c.id === parts[0]) || characters[0];
-                        let mutType = parts[1] || 'normal';
-                        
-                        let sellPrice = 100;
-                        if (charInfo.rarity === 'ゴット') sellPrice = 2000;
-                        if (charInfo.rarity === 'レジェンド') sellPrice = 800;
-                        if (charInfo.rarity === 'シークレット') sellPrice = 3000;
-                        if (charInfo.rarity === 'サンダー') sellPrice = 5000;
-                        if (mutType === 'gold') sellPrice *= 3;
-                        if (mutType === 'diamond') sellPrice *= 10;
-                        if (mutType === 'rainbow') sellPrice *= 50;
-                        
-                        totalMoney += sellPrice;
-                    }
-                    money += totalMoney;
-                    baseItems = [];
-                    saveState();
-                    updateUI();
-                    showBaseMenu();
-                }
-            }
+            manageBaseCharacter(index);
         }
 
         function showSettingsMenu() {
             audioSynth.playClick();
             modalBody.innerHTML = `
-                <h2 style="color:#ffd700;">${t('settingsTitle')}</h2>
+                <h2>${t('settingsTitle')}</h2>
                 
                 <div class="settings-row">
-                    <span>自分のID (6桁の数字)</span>
-                    <input type="text" id="setting-user-id" value="${myUserId}" maxlength="6" style="width:160px; text-align:center;" onchange="updateMyUserId(this.value)">
-                </div>
-
-                <div class="settings-row">
                     <span>${t('langLabel')}</span>
-                    <select id="setting-lang" onchange="changeLanguage(this.value)">
+                    <select id="lang-select" onchange="changeLanguage(this.value)">
                         <option value="ja" ${currentLang === 'ja' ? 'selected' : ''}>日本語 (Japanese)</option>
-                        <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option>
+                        <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English (英語)</option>
                     </select>
                 </div>
-
+                
                 <div class="settings-row">
                     <span>${t('soundLabel')}</span>
-                    <select id="setting-sound" onchange="changeSoundSetting(this.value)">
+                    <select id="sound-select" onchange="toggleSound(this.value)">
                         <option value="true" ${isSoundEnabled ? 'selected' : ''}>${t('soundOn')}</option>
                         <option value="false" ${!isSoundEnabled ? 'selected' : ''}>${t('soundOff')}</option>
                     </select>
                 </div>
-
+                
                 <div class="settings-row">
                     <span>${t('bgmLabel')}</span>
-                    <select id="setting-bgm" onchange="changeBgmSetting(this.value)">
+                    <select id="bgm-select" onchange="toggleBgm(this.value)">
                         <option value="true" ${isBgmEnabled ? 'selected' : ''}>${t('soundOn')}</option>
                         <option value="false" ${!isBgmEnabled ? 'selected' : ''}>${t('soundOff')}</option>
                     </select>
                 </div>
-
-                <br>
-                <button onclick="openMenu()" style="font-size:0.85em; padding:10px 20px;">${t('backBtn')}</button>
+                
+                <button onclick="openMenu()" style="margin-top:20px;">${t('backBtn')}</button>
             `;
-        }
-
-        function updateMyUserId(val) {
-            const cleanVal = val.trim();
-            if (/^\d{6}$/.test(cleanVal)) {
-                if (cleanVal !== myUserId) {
-                    myUserId = cleanVal;
-                    saveState();
-                    setupPeer();
-                }
-            } else {
-                document.getElementById('setting-user-id').value = myUserId;
-            }
         }
 
         function changeLanguage(lang) {
@@ -2257,109 +2311,134 @@
             showSettingsMenu();
         }
 
-        function changeSoundSetting(val) {
+        function toggleSound(val) {
             isSoundEnabled = (val === 'true');
             saveState();
-            showSettingsMenu();
         }
 
-        function changeBgmSetting(val) {
+        function toggleBgm(val) {
             isBgmEnabled = (val === 'true');
             saveState();
             const bgm = document.getElementById('bgm-audio');
-            if (isBgmEnabled) bgm.play().catch(()=>{});
-            else bgm.pause();
-            showSettingsMenu();
+            if (isBgmEnabled) {
+                bgm.play().catch(()=>{});
+            } else {
+                bgm.pause();
+            }
         }
 
-        /* --- 管理者パネル用関数 --- */
-        function switchAdminTab(tabId, e) {
-            audioSynth.playClick();
+        // --- 管理者パネル用関数群 ---
+        function switchAdminTab(tabId, event) {
             document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
             document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
-            if(e && e.target) e.target.classList.add('active');
             document.getElementById(tabId).classList.add('active');
         }
 
         function closeAdmin() {
-            audioSynth.playClick();
             document.getElementById('admin-panel').style.display = 'none';
         }
 
         function addAdminItem(type) {
-            audioSynth.playClick();
             if (type === 'money') {
-                const val = parseInt(document.getElementById('admin-add-money').value) || 0;
-                money += val;
+                const amount = parseInt(document.getElementById('admin-add-money').value) || 0;
+                money += amount;
+                updateUI();
+                saveState();
+                alert(`お金を ${amount}$ 追加しました。`);
             }
-            saveState();
+        }
+
+        function toggleInfinite(isChecked) {
+            isInfiniteSpin = isChecked;
             updateUI();
         }
 
-        function toggleInfinite(checked) {
-            audioSynth.playClick();
-            isInfiniteSpin = checked;
-        }
-
         function updateLuck() {
-            audioSynth.playClick();
             const multi = parseFloat(document.getElementById('admin-luck-multi').value) || 1;
-            const sec = parseInt(document.getElementById('admin-luck-time').value) || 60;
-            luckMultiplier = multi;
-            luckEndTime = Date.now() + (sec * 1000);
-            updateStatusEffects();
-        }
-
-        function activateMutation() {
-            audioSynth.playClick();
-            const type = document.getElementById('admin-mutation-type').value;
-            const sec = parseInt(document.getElementById('admin-mutation-time').value) || 60;
-            activeMutations[type] = Date.now() + (sec * 1000);
-            updateStatusEffects();
+            const sec = parseInt(document.getElementById('admin-luck-time').value) || 0;
+            if (multi >= 1 && sec > 0) {
+                luckMultiplier = multi;
+                luckEndTime = Date.now() + (sec * 1000);
+                updateStatusEffects();
+                alert(`ラックを ${multi}倍 に設定しました (${sec}秒)`);
+            }
         }
 
         function updateMutationProb() {
-            audioSynth.playClick();
-            const prob = parseFloat(document.getElementById('admin-prob-mutation').value) || 10;
-            mutationProb = prob;
+            const prob = parseFloat(document.getElementById('admin-prob-mutation').value);
+            if (prob >= 0 && prob <= 100) {
+                mutationProb = prob;
+                alert(`基本バフ付与確率を ${prob}% に設定しました`);
+            }
+        }
+
+        function activateMutation() {
+            const type = document.getElementById('admin-mutation-type').value;
+            const sec = parseInt(document.getElementById('admin-mutation-time').value) || 0;
+            if (sec > 0) {
+                activeMutations[type] = Date.now() + (sec * 1000);
+                updateStatusEffects();
+                alert(`${type === 'thunder' ? '雷' : 'ウォーター'}バフを全体発動しました (${sec}秒)`);
+            }
         }
 
         function showAdminCharList() {
-            audioSynth.playClick();
             modal.style.display = 'block';
-            let html = '<h2 style="color:#00ffcc; margin-bottom:15px;">基地にキャラクターを追加</h2><div style="display:flex; flex-wrap:wrap; justify-content:center; gap:15px; max-height:500px; overflow-y:auto; padding:15px;">';
+            let listHtml = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:10px; max-height:400px; overflow-y:auto;">';
             characters.forEach(c => {
-                html += `
-                    <div style="background:rgba(0,0,0,0.8); padding:15px; border:1px solid ${c.color}; border-radius:5px; text-align:center; min-width: 140px;">
-                        <img src="${c.img}" style="width:70px; height:70px; object-fit:contain; filter:drop-shadow(0 0 5px ${c.color});"><br>
-                        <div style="color:${c.color}; font-size:0.9em; margin: 8px 0; font-weight:bold; word-wrap:break-word;">${c.name}</div>
-                        <div style="font-size:0.75em; color:#ddd; margin-bottom:6px;">レア度: ${c.rarity}</div>
-                        <div style="display:flex; flex-direction:column; gap:5px;">
-                            <button onclick="addSpecificCharToBase('${c.id}', 'normal')" style="padding:6px; font-size:0.8em;">通常追加</button>
-                            <button onclick="addSpecificCharToBase('${c.id}', 'gold')" style="padding:6px; font-size:0.8em; color:gold; border-color:gold;">GOLD追加</button>
-                            <button onclick="addSpecificCharToBase('${c.id}', 'diamond')" style="padding:6px; font-size:0.8em; color:cyan; border-color:cyan;">DIAMOND追加</button>
-                            <button onclick="addSpecificCharToBase('${c.id}', 'rainbow')" style="padding:6px; font-size:0.8em; color:#ff00ff; border-color:#ff00ff;">RAINBOW追加</button>
-                        </div>
+                listHtml += `
+                    <div style="background:#000; border:1px solid ${c.color}; padding:5px; text-align:center; border-radius:4px; cursor:pointer;" onclick="adminAddChar('${c.id}')">
+                        <img src="${c.img}" style="width:60px; height:60px; object-fit:contain;">
+                        <div style="font-size:0.75em; color:${c.color}; margin-top:5px;">${c.name}</div>
+                        <div style="font-size:0.7em; color:#fff;">追加</div>
                     </div>
                 `;
             });
-            html += '</div>';
-            modalBody.innerHTML = html;
+            listHtml += '</div>';
+
+            modalBody.innerHTML = `
+                <h2 style="color:#00ffcc;">[ADMIN] キャラ強制追加</h2>
+                <p style="font-size:0.9em; color:#aaa;">クリックで基地に直接追加します（最大枠を超えて追加可能）</p>
+                ${listHtml}
+                <button onclick="closeModal()" style="margin-top:15px; border-color:#00ffcc; color:#00ffcc;">閉じる</button>
+            `;
         }
 
-        // キャラクター出現メッセージを表示せずにサイレント追加する関数
-        function addSpecificCharToBase(charId, mutation = 'normal') {
-            audioSynth.playClick();
-            if (baseItems.length >= getMaxBaseCapacity()) {
-                return;
-            }
+        function adminAddChar(charId) {
+            let mutation = rollMutation();
             let storeId = charId + ":" + mutation + ":none";
             baseItems.push(storeId);
             unlockedCharacters[charId + ":" + mutation] = true;
             saveState();
-            updateUI();
-            // メッセージ(alert)表示を排除
+            audioSynth.playClick();
+            alert(`ID: ${charId} を基地に追加しました！`);
         }
+
+        // 管理者パネルのドラッグ移動機能
+        const adminPanel = document.getElementById('admin-panel');
+        const adminHeader = document.getElementById('admin-header');
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        adminHeader.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            dragOffsetX = e.clientX - adminPanel.offsetLeft;
+            dragOffsetY = e.clientY - adminPanel.offsetTop;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                adminPanel.style.left = (e.clientX - dragOffsetX) + 'px';
+                adminPanel.style.top = (e.clientY - dragOffsetY) + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
     </script>
 </body>
 </html>
