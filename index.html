@@ -3714,7 +3714,7 @@ function installTradeConnectionGuard(conn){
 
 if(typeof setupConnectionListeners==='function'){
  const originalSetupConnectionListeners=setupConnectionListeners;
- window.setupConnectionListeners=function(conn){
+ setupConnectionListeners=function(conn){
   installTradeConnectionGuard(conn);
   originalSetupConnectionListeners(conn);
   installTradeConnectionGuard(conn);
@@ -3778,6 +3778,429 @@ setInterval(()=>{
  try{if(peer&&peer.disconnected&&!peer.destroyed)peer.reconnect()}catch(e){}
 },5000);
 
+})();
+</script>
+
+
+<!-- ============================================================
+     PATCH v2 — REBIRTH / CRAFT / BOLT / P2P STABILITY
+     既存コードは削除・書き換えせず、ここから後付けで強化
+     ============================================================ -->
+<style id="piritama-v2-style">
+/* ---------- BOLT 改良ビジュアル ---------- */
+.filter-bolt{
+    filter:drop-shadow(0 0 7px #ffffff)
+           drop-shadow(0 0 14px #63f6ff)
+           drop-shadow(0 0 24px #00d9ff)
+           drop-shadow(0 0 38px rgba(0,255,255,.9))
+           saturate(1.75) brightness(1.28) contrast(1.12) !important;
+    animation:boltUltraPulse .9s ease-in-out infinite !important;
+    transform-origin:center center;
+}
+@keyframes boltUltraPulse{
+    0%,100%{filter:drop-shadow(0 0 7px #fff) drop-shadow(0 0 14px #63f6ff) drop-shadow(0 0 24px #00d9ff) drop-shadow(0 0 38px rgba(0,255,255,.9)) saturate(1.75) brightness(1.28) contrast(1.12);transform:scale(1) rotate(0deg)}
+    20%{transform:scale(1.035) rotate(-1deg)}
+    25%{filter:drop-shadow(0 0 10px #fff) drop-shadow(0 0 22px #a7fbff) drop-shadow(0 0 36px #00eaff) drop-shadow(0 0 50px rgba(0,255,255,1)) saturate(2) brightness(1.5) contrast(1.18)}
+    30%{transform:scale(.99) rotate(1deg)}
+    55%{transform:scale(1.025) rotate(0deg)}
+    75%{filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 18px #63f6ff) drop-shadow(0 0 31px #00c8ff) drop-shadow(0 0 45px rgba(0,255,255,.95)) saturate(1.9) brightness(1.38)}
+}
+.bolt-frame{position:relative;display:inline-block}
+.bolt-frame::after{
+    content:'⚡';position:absolute;right:-5px;top:-8px;font-size:1.35em;font-weight:900;color:#eaffff;
+    text-shadow:0 0 5px #fff,0 0 12px #00eaff,0 0 24px #00aaff;
+    animation:boltBadge .55s steps(2,end) infinite;pointer-events:none;z-index:5;
+}
+@keyframes boltBadge{0%,100%{opacity:.55;transform:rotate(-8deg) scale(.9)}50%{opacity:1;transform:rotate(9deg) scale(1.14)}}
+.bolt-label,.bolt-result-tag{color:#dfffff!important;text-shadow:0 0 8px #00eaff,0 0 16px #008cff!important;font-weight:900!important}
+
+/* ---------- リバース v2 ---------- */
+.rebirth-v2-box{background:rgba(0,0,0,.58);border:1px solid rgba(255,215,0,.38);border-radius:12px;padding:14px;margin:12px 0}
+.rebirth-v2-material{display:flex;align-items:center;gap:9px;padding:7px 9px;margin:5px 0;border:1px solid #394857;border-radius:8px;background:rgba(0,0,0,.36)}
+.rebirth-v2-material.ok{border-color:rgba(0,255,102,.55);box-shadow:0 0 8px rgba(0,255,102,.12)}
+.rebirth-v2-material.missing{border-color:#ff6b6b}
+.rebirth-v2-dot{width:34px;height:34px;border-radius:7px;object-fit:contain;flex:0 0 auto}
+
+/* ---------- 追加クラフトレシピ ---------- */
+.craft-extra-recipe{position:relative}
+.craft-extra-badge{position:absolute;right:8px;top:6px;padding:2px 6px;border:1px solid #ffd700;border-radius:10px;color:#ffd700;font-size:.58em;font-weight:bold;box-shadow:0 0 8px rgba(255,215,0,.25)}
+.craft-variant-note{margin-top:8px;padding:8px 10px;border:1px solid rgba(140,247,255,.3);border-radius:8px;background:rgba(140,247,255,.05);color:#bcefff;font-size:.68em;line-height:1.55;text-align:left}
+
+/* ---------- P2P stability ---------- */
+.p2p-v2-status{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid currentColor;border-radius:18px;background:rgba(0,0,0,.42);font-size:.78em;font-weight:bold}
+.p2p-v2-status::before{content:'';width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor}
+</style>
+
+<script id="piritama-v2-script">
+(function(){
+'use strict';
+
+/* ============================================================
+   1) リバース：15段階・費用アップ・キャラクター素材必須
+   ・基地容量はリバースで増えない（固定10枠）
+   ・既存キャラクターを全消去する仕様にはしない
+   ============================================================ */
+const REBIRTH_V2_MAX = 15;
+const REBIRTH_V2_COSTS = [
+    2000,12000,35000,70000,150000,
+    250000,400000,600000,900000,1300000,
+    2000000,3000000,4500000,7000000,12000000
+];
+const REBIRTH_V2_REQS = [
+    [{rarity:'アンコモン',count:1}],
+    [{rarity:'レア',count:1}],
+    [{rarity:'レジェンド',count:1}],
+    [{rarity:'ゴット',count:1}],
+    [{rarity:'シークレット',count:1}],
+    [{rarity:'サンダー',count:1}],
+    [{rarity:'シークレット',count:2}],
+    [{rarity:'ゴット',count:2}],
+    [{rarity:'サンダー',count:2}],
+    [{rarity:'シークレット',count:1},{rarity:'ゴット',count:1}],
+    [{rarity:'シークレット',count:2},{rarity:'サンダー',count:1}],
+    [{rarity:'ゴット',count:2},{rarity:'サンダー',count:1}],
+    [{rarity:'シークレット',count:3},{rarity:'ゴット',count:1}],
+    [{rarity:'ゴット',count:2},{rarity:'サンダー',count:2}],
+    [{rarity:'シークレット',count:3},{rarity:'ゴット',count:2},{rarity:'サンダー',count:2}]
+];
+function rebirthV2Capacity(){ return 10; }
+getMaxBaseCapacity = rebirthV2Capacity;
+function rebirthV2MutationRank(item){
+    const p=String(item||'').split(':');
+    const mut=p[1]||'normal', buff=p[2]||'none';
+    const m={normal:0,gold:1,diamond:2,rainbow:3,bolt:4}[mut]??0;
+    return m*10+(buff==='none'?0:1);
+}
+function rebirthV2PickMaterials(reqs){
+    const used=new Set(),picked=[];
+    for(const req of reqs){
+        let need=req.count;
+        const candidates=[];
+        for(let i=0;i<baseItems.length;i++){
+            if(used.has(i))continue;
+            const p=String(baseItems[i]||'').split(':');
+            const c=characters.find(x=>x.id===p[0]);
+            if(c && c.rarity===req.rarity)candidates.push(i);
+        }
+        candidates.sort((a,b)=>rebirthV2MutationRank(baseItems[a])-rebirthV2MutationRank(baseItems[b]));
+        for(const idx of candidates){
+            if(need<=0)break;
+            used.add(idx);picked.push(idx);need--;
+        }
+        if(need>0)return null;
+    }
+    return picked;
+}
+function rebirthV2ReqText(req){
+    return req.map(x=>x.rarity+' × '+x.count).join(' ＋ ');
+}
+function openRebirthMenuV2(){
+    audioSynth.playClick();
+    modal.style.display='block';
+    const n=Math.min(Math.max(Number(rebirthCount)||0,0),REBIRTH_V2_MAX);
+    if(n>=REBIRTH_V2_MAX){
+        modalBody.innerHTML='<div class="rebirth-v2-box"><h2 style="color:var(--primary-yellow);">REBIRTH Lv.15</h2><p style="color:#fff;font-size:1.1em;font-weight:bold;">リバースは最大15段階までです。</p><p style="color:#9ab;">基地容量はリバース回数で増加しません。最大10枠のままです。</p><button onclick="closeModal()">閉じる</button></div>';
+        return;
+    }
+    const cost=REBIRTH_V2_COSTS[n];
+    const reqs=REBIRTH_V2_REQS[n];
+    const picked=rebirthV2PickMaterials(reqs);
+    const canMoney=money>=cost, canChars=!!picked, can=canMoney&&canChars;
+    let rows='';
+    reqs.forEach((r,ri)=>{
+        const available=(baseItems||[]).filter(item=>{
+            const p=String(item||'').split(':');const c=characters.find(x=>x.id===p[0]);return c&&c.rarity===r.rarity;
+        }).length;
+        rows+='<div class="rebirth-v2-material '+(available>=r.count?'ok':'missing')+'"><div style="flex:1;text-align:left;"><b style="color:#fff;">'+r.rarity+'</b><span style="color:#ffd700;"> × '+r.count+'</span><div style="font-size:.68em;color:'+(available>=r.count?'#00ff66':'#ff6b6b')+';">所持：'+available+' / 必要：'+r.count+'</div></div></div>';
+    });
+    modalBody.innerHTML='<div style="max-height:78vh;overflow-y:auto;padding-right:4px;"><h2 style="color:var(--primary-yellow);">REBIRTH Lv.'+(n+1)+'</h2><p style="color:#aaa;font-size:.84em;line-height:1.6;margin-top:0;">リバースすると<strong style="color:#ffd700;">お金と指定キャラクター素材</strong>を消費します。その他の基地キャラクターは保持されます。<br><strong style="color:#00ff66;">基地容量は10枠で固定</strong>です。</p><div class="rebirth-v2-box"><div style="font-size:1.25em;color:#ffd700;font-weight:bold;">必要なお金：$'+formatMoney(cost)+'</div><div style="font-size:.8em;color:'+(canMoney?'#00ff66':'#ff6b6b')+';margin-top:3px;">現在のお金：$'+formatMoney(money)+'</div><div style="margin-top:11px;font-weight:bold;color:#00ffcc;">必要キャラクター：'+rebirthV2ReqText(reqs)+'</div>'+rows+'<div style="margin-top:8px;color:#8cf7ff;font-size:.68em;">素材は通常形態を優先して自動選択します。変異・バフ付きしかない場合はそれを使用します。</div></div><div style="padding:10px;border:1px solid #304052;border-radius:9px;background:rgba(0,0,0,.35);color:#fff;font-size:.78em;">現在の基地：<b style="color:#ffd700;">'+baseItems.length+' / 10</b>　｜　リバース後も <b style="color:#00ff66;">10枠</b></div><button onclick="executeRebirth()" '+(can?'':'disabled')+' style="margin-top:14px;font-size:1.08em;padding:12px 28px;border-color:var(--primary-yellow);color:var(--primary-yellow);">'+(can?'⚡ リバースを実行':'素材またはお金が不足')+'</button><button onclick="closeModal()" style="margin-left:8px;">キャンセル</button></div>';
+}
+function executeRebirthV2(){
+    if((Number(rebirthCount)||0)>=REBIRTH_V2_MAX)return;
+    const n=Math.max(0,Number(rebirthCount)||0),cost=REBIRTH_V2_COSTS[n],reqs=REBIRTH_V2_REQS[n];
+    const picked=rebirthV2PickMaterials(reqs);
+    if(!picked || money<cost){openRebirthMenuV2();return;}
+    /* 最終確認：インデックスとレア度をもう一度検証してから消費 */
+    const pickedSet=new Set(picked);
+    if(picked.length!==pickedSet.size || picked.some(i=>!Number.isInteger(i)||i<0||i>=baseItems.length)){
+        openRebirthMenuV2();return;
+    }
+    const needRarity=[];reqs.forEach(r=>{for(let k=0;k<r.count;k++)needRarity.push(r.rarity)});
+    const actual=picked.map(i=>{const p=String(baseItems[i]).split(':');const c=characters.find(x=>x.id===p[0]);return c?c.rarity:''}).sort();
+    const expected=needRarity.slice().sort();
+    if(JSON.stringify(actual)!==JSON.stringify(expected)){openRebirthMenuV2();return;}
+    const consumed=picked.map(i=>baseItems[i]);
+    audioSynth.playJackpot();
+    picked.slice().sort((a,b)=>b-a).forEach(i=>baseItems.splice(i,1));
+    money-=cost;
+    rebirthCount=n+1;
+    saveState();updateUI();
+    let names=consumed.map(x=>{const c=characters.find(y=>y.id===String(x).split(':')[0]);return c?c.name:'?'}).join('、');
+    modalBody.innerHTML='<div class="rebirth-v2-box" style="text-align:center;border-color:#00ff66;box-shadow:0 0 22px rgba(0,255,102,.2);"><h2 style="color:#00ff66;text-shadow:0 0 15px #00ff66;">⚡ REBIRTH COMPLETE ⚡</h2><p style="color:#fff;">第'+rebirthCount+'段階のリバースに成功しました！</p><div style="color:#ffd700;font-weight:bold;">支払い：$'+formatMoney(cost)+'</div><div style="color:#8cf7ff;font-size:.76em;margin-top:7px;">消費素材：'+names+'</div><div style="margin-top:9px;color:#00ff66;">基地容量：10枠（リバースでは増加しません）</div><div style="margin-top:13px;"><button onclick="openRebirthMenu()" style="border-color:var(--primary-yellow);color:var(--primary-yellow);">次のリバースを見る</button><button onclick="showBaseMenu()" style="border-color:var(--primary-pink);color:var(--primary-pink);">基地を見る</button></div></div>';
+}
+openRebirthMenu = openRebirthMenuV2;
+executeRebirth = executeRebirthV2;
+window.openRebirthMenu=openRebirthMenuV2;
+window.executeRebirth=executeRebirthV2;
+
+/* ============================================================
+   2) クラフト：レシピ2つ追加 + 変異/バフ継承
+   ============================================================ */
+const CRAFT_EXTRA_RECIPES=[
+ {id:'legend_pair_to_burokku',title:'レジェンド2種類 → Burokku Burokku',resultId:'burokku_burokku',cost:140000,requiredIds:['mane_mane_rabitto','pipi_kora'],description:'Manē Manē Rabitto と Pīpī Kōra を1体ずつ使い、Burokku Burokku を生成します。'},
+ {id:'secret_pair_god_to_pipikora',title:'シークレット2種類＋ゴット → Pīpī Kōra',resultId:'pipi_kora',cost:220000,requiredIds:['suta_banana','wota_cheri','kaminari'],description:'Sutā Banana、Wōta Cherī、Kaminari を1体ずつ使い、Pīpī Kōra を生成します。'}
+];
+let craftV2ExtraCurrent=null,craftV2ExtraSelected=[];
+function craftV2Char(id){return characters.find(c=>c.id===id)||characters[0]}
+function craftV2Parts(item){const p=String(item||'').split(':');return{id:p[0],mut:p[1]||'normal',buff:p[2]||'none'}}
+function craftV2VariantLabels(item){const p=craftV2Parts(item);const a=[];if(p.mut!=='normal')a.push(p.mut.toUpperCase());if(p.buff!=='none')a.push(p.buff.toUpperCase());return a.join(' / ')||'NORMAL'}
+function craftV2PickedItems(){return craftV2ExtraSelected.map(i=>baseItems[i]).filter(Boolean)}
+function craftV2RollVariant(items){
+    const muts=[],buffs=[];
+    items.forEach(item=>{const p=craftV2Parts(item);if(p.mut!=='normal')muts.push(p.mut);if(p.buff!=='none')buffs.push(p.buff)});
+    let mut='normal',buff='none';
+    if(muts.length && Math.random()<0.08){
+        const weights={gold:60,diamond:25,rainbow:12,bolt:3},pool=[];muts.forEach(m=>{pool.push(m)});
+        let sum=0;pool.forEach(m=>sum+=weights[m]||1);let r=Math.random()*sum;for(const m of pool){r-=weights[m]||1;if(r<=0){mut=m;break;}}
+    }
+    if(buffs.length && Math.random()<0.08)buff=buffs[Math.floor(Math.random()*buffs.length)];
+    return {mut,buff};
+}
+function craftV2ApplyVisual(itemStr,root){
+    const p=craftV2Parts(itemStr);if(!root)return;
+    const img=root.querySelector('img');
+    if(img){
+        if(p.mut==='gold')img.classList.add('filter-gold');
+        if(p.mut==='diamond')img.classList.add('filter-diamond');
+        if(p.mut==='rainbow')img.classList.add('filter-rainbow');
+        if(p.mut==='bolt')img.classList.add('filter-bolt');
+        if(p.buff==='thunder')img.classList.add('filter-thunder');
+        if(p.buff==='water')img.classList.add('filter-water');
+    }
+    const labels=[];if(p.mut!=='normal')labels.push('【'+(p.mut==='bolt'?'BOLT ⚡':p.mut.toUpperCase())+'】');if(p.buff!=='none')labels.push('【'+p.buff.toUpperCase()+' BUFF】');
+    if(labels.length){let old=root.querySelector('.craft-v2-variant-tag');if(!old){old=document.createElement('div');old.className='craft-v2-variant-tag';old.style.cssText='margin-top:5px;color:#8cf7ff;font-size:.72em;font-weight:bold;text-shadow:0 0 8px #00eaff;';root.appendChild(old);}old.textContent=labels.join(' ');}
+}
+function craftV2RenderExtra(){
+    if(!craftV2ExtraCurrent){window.showCraftMachine();return;}
+    const r=craftV2ExtraCurrent,reqs=r.requiredIds,sel=craftV2ExtraSelected;
+    let all=true,html='';
+    reqs.forEach((id,ri)=>{
+        let cur=Number.isInteger(sel[ri])?sel[ri]:-1;
+        if(cur<0||!baseItems[cur]||craftV2Parts(baseItems[cur]).id!==id)all=false;
+        const c=craftV2Char(id);
+        let candidates=[];for(let i=0;i<baseItems.length;i++){if(i===cur)continue;if(sel.includes(i))continue;if(craftV2Parts(baseItems[i]).id===id)candidates.push(i)}
+        if(cur>=0&&!candidates.includes(cur))candidates.unshift(cur);
+        let inst='';
+        if(!candidates.length&&cur<0)inst='<span style="font-size:.65em;color:#ff6b6b;">不足しています</span>';
+        else candidates.slice(0,24).forEach(i=>{const chosen=i===cur,used=sel.includes(i)&&!chosen;inst+='<button class="craft-instance '+(chosen?'sel ':'')+(used?'used':'')+'" onclick="craftV2SelectInstance('+ri+','+i+')" '+(used?'disabled':'')+'>#'+(i+1)+' '+craftV2VariantLabels(baseItems[i])+'</button>'});
+        html+='<div class="craft-req '+(cur>=0?'ok':'missing')+'"><img src="'+c.img+'" alt="'+c.id+'" style="filter:drop-shadow(0 0 7px '+(c.color||'#fff')+');"><div class="craft-req-main"><div class="craft-req-name">'+(ri+1)+'. '+c.name+'</div><div class="craft-req-status" style="color:'+(cur>=0?'#00ff66':'#ff6b6b')+';">'+(cur>=0?'選択済み：基地 #'+(cur+1):'必要：1体を選択')+'</div><div class="craft-instance-grid">'+inst+'</div></div></div>';
+    });
+    const can=all&&reqs.every((_,i)=>Number.isInteger(sel[i])&&sel[i]>=0)&&money>=r.cost;
+    const result=craftV2Char(r.resultId);
+    modalBody.innerHTML='<div class="craft-shell"><h2 class="craft-title">⚙ CRAFT MACHINE</h2><div class="craft-sub">'+r.description+'</div><div class="craft-result-head"><img src="'+result.img+'" alt="'+result.id+'" style="filter:drop-shadow(0 0 12px '+(result.color||'#fff')+');"><div style="text-align:left;"><div class="craft-result-name">'+result.name+'</div><div class="craft-result-rarity" style="color:'+(result.color||'#fff')+';">レア度：'+result.rarity+'</div></div></div><div class="craft-cost">必要なお金：$'+formatMoney(r.cost)+'　｜　現在：$'+formatMoney(money)+'</div><h3 style="color:#00ffcc;margin:9px 0 6px;">必要キャラクターを選択</h3><div class="craft-req-list">'+html+'</div>'+((money<r.cost)?'<div style="color:#ff6b6b;font-size:.72em;margin-top:6px;">お金が足りません。</div>':'')+'<div class="craft-variant-note">✨ 選んだ素材に変異・バフが付いていると、低確率で完成キャラクターへ受け継がれます。<br>変異継承：約8%／バフ継承：約8%。BOLTはその中でも低い重みです。</div><div class="craft-actions"><button onclick="craftV2Back()">← クラフト一覧</button><button onclick="executeCraftV2()" '+(can?'':'disabled')+' style="border-color:#00ff66;color:#00ff66;">⚡ '+(can?'クラフト実行':'条件をそろえてください')+'</button></div></div>';
+}
+function craftV2SelectInstance(ri,idx){
+    if(!craftV2ExtraCurrent||!Number.isInteger(idx)||idx<0||idx>=baseItems.length)return;
+    if(craftV2ExtraSelected.includes(idx)&&craftV2ExtraSelected[ri]!==idx)return;
+    craftV2ExtraSelected[ri]=craftV2ExtraSelected[ri]===idx?-1:idx;
+    if(craftV2ExtraSelected[ri]<0)delete craftV2ExtraSelected[ri];
+    craftV2RenderExtra();
+}
+function craftV2Back(){audioSynth.playClick();craftV2ExtraCurrent=null;craftV2ExtraSelected=[];showCraftMachine()}
+function openExtraCraftRecipe(id){audioSynth.playClick();craftV2ExtraCurrent=CRAFT_EXTRA_RECIPES.find(r=>r.id===id)||null;craftV2ExtraSelected=[];craftV2RenderExtra()}
+function executeCraftV2(){
+    const r=craftV2ExtraCurrent;if(!r)return;
+    const sel=craftV2ExtraSelected.slice();if(!r.requiredIds.every((_,i)=>Number.isInteger(sel[i])&&sel[i]>=0)||money<r.cost){craftV2RenderExtra();return;}
+    const uniq=new Set(sel);if(uniq.size!==sel.length){craftV2ExtraSelected=[];craftV2RenderExtra();return;}
+    for(let i=0;i<r.requiredIds.length;i++){const idx=sel[i];if(!Number.isInteger(idx)||idx<0||idx>=baseItems.length||craftV2Parts(baseItems[idx]).id!==r.requiredIds[i]){craftV2ExtraSelected=[];craftV2RenderExtra();return;}}
+    const consumed=sel.map(i=>baseItems[i]),result=craftV2Char(r.resultId);if(!result||!result.id)return;
+    const variant=craftV2RollVariant(consumed);craftBusy=true;
+    sel.slice().sort((a,b)=>b-a).forEach(i=>baseItems.splice(i,1));
+    money-=r.cost;const resultStr=result.id+':'+variant.mut+':'+variant.buff;baseItems.push(resultStr);unlockedCharacters[result.id+':'+variant.mut]=true;
+    saveState();updateUI();try{if(typeof syncCollectionStats==='function')syncCollectionStats();if(typeof collectionPersist==='function')collectionPersist()}catch(e){}
+    try{audioSynth.playJackpot()}catch(e){}
+    modalBody.innerHTML='<div class="craft-shell craft-success"><h2 class="craft-title" style="color:#00ff66;">⚡ CRAFT COMPLETE ⚡</h2><div style="color:#fff;margin:8px 0;">素材を消費してキャラクターを生成しました！</div><div style="display:flex;flex-direction:column;align-items:center;padding:14px;border:2px solid '+(result.color||'#00ff66')+';border-radius:14px;background:rgba(0,255,102,.06);"><img src="'+result.img+'" style="width:160px;height:160px;object-fit:contain;filter:drop-shadow(0 0 22px '+(result.color||'#00ff00')+');"><div style="font-size:1.2em;font-weight:bold;color:'+(result.color||'#fff')+';margin-top:5px;">'+result.name+'</div><div style="margin-top:3px;color:#fff;">'+result.rarity+'</div><div class="craft-v2-variant-tag"></div><div style="font-size:.72em;color:#9ab;margin-top:8px;">基地に追加済み　｜　保存済み</div></div><div class="craft-actions"><button onclick="showCraftMachine()">クラフト一覧へ</button><button onclick="showBaseMenu()" style="border-color:#b967ff;color:#b967ff;">基地を確認</button></div></div>';
+    craftV2ApplyVisual(resultStr,modalBody.querySelector('.craft-success'));craftV2ExtraCurrent=null;craftV2ExtraSelected=[];setTimeout(()=>{craftBusy=false},700);
+}
+/* 既存3レシピをそのまま使い、一覧に2レシピだけ追加 */
+const _craftV2OriginalShowMachine=window.showCraftMachine;
+showCraftMachine=function(){
+    if(typeof _craftV2OriginalShowMachine==='function')_craftV2OriginalShowMachine();
+    const left=modalBody.querySelector('.craft-left');
+    if(!left)return;
+    CRAFT_EXTRA_RECIPES.forEach(r=>{
+        const c=craftV2Char(r.resultId);
+        const available=r.requiredIds.every(id=>baseItems.some(item=>craftV2Parts(item).id===id));
+        const b=document.createElement('button');b.className='craft-recipe-btn craft-extra-recipe';b.style.borderColor=c.color||'#ffd700';b.style.color=c.color||'#ffd700';
+        b.innerHTML='<span class="craft-extra-badge">NEW</span><img src="'+c.img+'" alt="'+c.id+'" style="filter:drop-shadow(0 0 8px '+(c.color||'#fff')+');"><span class="craft-btn-text"><span class="craft-btn-name">'+r.title+'</span><span class="craft-btn-rarity">'+c.rarity+'</span><span class="craft-btn-cost">クラフト費用 $'+formatMoney(r.cost)+'　'+(available?'● 素材あり':'○ 素材不足')+'</span></span>';
+        b.onclick=()=>openExtraCraftRecipe(r.id);left.appendChild(b);
+    });
+    const foot=modalBody.querySelector('.craft-machine-footer');if(foot)foot.textContent='現在のレシピは5種類。素材を集めてクラフトし、変異・バフ継承も狙えます。';
+};
+window.openExtraCraftRecipe=openExtraCraftRecipe;window.craftV2SelectInstance=craftV2SelectInstance;window.craftV2Back=craftV2Back;window.executeCraftV2=executeCraftV2;
+
+/* 既存3レシピでも、素材の変異/バフを低確率継承させる後付け */
+const _craftV2OpenRecipe=window.craftOpenRecipe, _craftV2SelectInstance=window.craftSelectInstance, _craftV2ExecuteCraft=window.executeCraft, _craftV2GoBack=window.craftGoBack;
+let craftV2Shadow={};
+if(typeof _craftV2OpenRecipe==='function')craftOpenRecipe=function(id){craftV2Shadow={};return _craftV2OpenRecipe(id)};
+if(typeof _craftV2SelectInstance==='function')craftSelectInstance=function(ri,idx){
+    const old=craftV2Shadow[ri];
+    if(old===idx)delete craftV2Shadow[ri]; else craftV2Shadow[ri]=idx;
+    return _craftV2SelectInstance(ri,idx);
+};
+if(typeof _craftV2GoBack==='function')craftGoBack=function(){craftV2Shadow={};return _craftV2GoBack()};
+if(typeof _craftV2ExecuteCraft==='function')executeCraft=function(){
+    const chosen=Object.values(craftV2Shadow).map(Number).filter(Number.isInteger).filter(i=>i>=0&&i<baseItems.length).map(i=>baseItems[i]);
+    const beforeLen=baseItems.length;
+    const beforeTail=baseItems[baseItems.length-1];
+    const ret=_craftV2ExecuteCraft();
+    if(baseItems.length<beforeLen && baseItems.length>0){
+        const last=baseItems[baseItems.length-1],p=craftV2Parts(last);
+        if(chosen.length && p.mut==='normal' && p.buff==='none'){
+            const v=craftV2RollVariant(chosen);
+            if(v.mut!=='normal'||v.buff!=='none'){
+                const resultStr=p.id+':'+v.mut+':'+v.buff;baseItems[baseItems.length-1]=resultStr;unlockedCharacters[p.id+':'+v.mut]=true;saveState();updateUI();
+                const root=modalBody.querySelector('.craft-success');craftV2ApplyVisual(resultStr,root);
+            }
+        }
+    }
+    craftV2Shadow={};
+    return ret;
+};
+
+/* ============================================================
+   3) P2P：iPad / PC を意識した接続安定化
+   ・STUNを増やす
+   ・iceCandidatePoolSize
+   ・ゲストを自動再試行
+   ・peer-unavailable時の古いactiveConn判定を改善
+   ・接続メタデータで部屋を確認
+   ・接続直後にスナップショットを送る
+   ============================================================ */
+const P2P_V2_ICE=[
+    {urls:'stun:stun.l.google.com:19302'},
+    {urls:'stun:stun1.l.google.com:19302'},
+    {urls:'stun:stun2.l.google.com:19302'},
+    {urls:'stun:stun.cloudflare.com:3478'}
+];
+function p2pV2PeerOptions(){return{debug:1,config:{iceServers:P2P_V2_ICE,iceTransportPolicy:'all',iceCandidatePoolSize:10}}}
+let p2pV2JoinTimer=null,p2pV2JoinAttempt=0,p2pV2SessionToken='';
+function p2pV2ClearJoinTimer(){if(p2pV2JoinTimer){clearTimeout(p2pV2JoinTimer);p2pV2JoinTimer=null}}
+function p2pV2Session(){if(!p2pV2SessionToken)p2pV2SessionToken=(crypto&&crypto.randomUUID)?crypto.randomUUID():('s-'+Date.now()+'-'+Math.random().toString(36).slice(2));return p2pV2SessionToken}
+function p2pV2SendHello(conn){if(!conn||!conn.open)return;try{conn.send({type:'PIRITAMA_TRADE_HELLO_V2',room:currentRoomCode,from:myUserId,session:p2pV2Session()})}catch(e){}}
+function p2pV2Attach(conn){
+    if(!conn||conn.__piritamaV2Attached)return;conn.__piritamaV2Attached=true;
+    conn.on('data',data=>{
+        if(!data||typeof data!=='object')return;
+        if(data.type==='PIRITAMA_TRADE_HELLO_V2'){
+            if(currentRoomCode && String(data.room||'')!==String(currentRoomCode))return;
+            try{conn.send({type:'PIRITAMA_TRADE_HELLO_ACK_V2',room:currentRoomCode,session:p2pV2Session()})}catch(e){}
+            setTimeout(()=>{try{if(conn.open){conn.send({type:'SELECT_CHARS',chars:myTradeOffer()});conn.send({type:'TOGGLE_OK',ok:false,mine:myTradeOffer(),theirs:peerSelectedTradeChars.slice()});}}catch(e){}},40);
+        } else if(data.type==='PIRITAMA_TRADE_HELLO_ACK_V2'){
+            if(String(data.room||currentRoomCode)!==String(currentRoomCode))return;
+        }
+    });
+    conn.on('open',()=>{p2pV2SendHello(conn)});
+    const pc=conn.peerConnection;
+    if(pc){
+        const check=()=>{
+            const st=pc.connectionState||pc.iceConnectionState;
+            if(st==='failed')tradeSetNotice('P2Pの経路を再確立しています…','#ffd700');
+        };
+        pc.addEventListener&&pc.addEventListener('connectionstatechange',check);
+        pc.addEventListener&&pc.addEventListener('iceconnectionstatechange',check);
+    }
+}
+function p2pV2SetupPeer(customPeerId){
+    p2pV2ClearJoinTimer();
+    if(peer){try{peer.destroy()}catch(e){}}
+    const id=customPeerId||myUserId;
+    peer=new Peer(id,p2pV2PeerOptions());peerReady=false;
+    peer.on('open',()=>{peerReady=true;});
+    peer.on('close',()=>{peerReady=false});
+    peer.on('disconnected',()=>{try{if(peer&&!peer.destroyed)peer.reconnect()}catch(e){}});
+    peer.on('connection',conn=>{
+        if(currentRoomCode && conn.metadata && conn.metadata.room && String(conn.metadata.room)!==String(currentRoomCode)){try{conn.close()}catch(e){}return}
+        if(activeConn && activeConn!==conn && activeConn.open){try{conn.send({type:'ROOM_FULL'});conn.close()}catch(e){}return}
+        activeConn=conn;p2pV2Attach(conn);
+        if(typeof setupConnectionListeners==='function')setupConnectionListeners(conn);
+        renderTradeUI();
+    });
+    peer.on('error',err=>{
+        console.error('P2P v2 Peer Error:',err);
+        if(err&&err.type==='unavailable-id'&&isHost){setTimeout(()=>{try{createTradeRoom()}catch(e){}},300);return}
+        if(err&&err.type==='peer-unavailable'&&!isHost&&currentRoomCode){
+            if(activeConn&&!activeConn.open){try{activeConn.close()}catch(e){}activeConn=null}
+            tradeSetNotice('相手の部屋を確認しています…','#ffd700');renderTradeUI();
+        }
+    });
+}
+function p2pV2Join(code,attempt){
+    p2pV2JoinAttempt=attempt||0;p2pV2ClearJoinTimer();
+    if(peer){try{peer.destroy()}catch(e){}}
+    activeConn=null;peerReady=false;isHost=false;currentRoomCode=code;p2pV2SessionToken='';
+    const guestPeer=new Peer(undefined,p2pV2PeerOptions());peer=guestPeer;
+    guestPeer.on('open',()=>{
+        peerReady=true;
+        const conn=guestPeer.connect('trade-room-'+code,{reliable:true,serialization:'json',metadata:{room:code,userId:myUserId,client:'ipad-pc-stable-v2'}});
+        activeConn=conn;
+        let opened=false;
+        const failOnce=()=>{
+            if(opened)return;
+            if(p2pV2JoinAttempt<1){
+                try{guestPeer.destroy()}catch(e){}
+                activeConn=null;tradeSetNotice('接続を再試行しています…','#ffd700');renderTradeUI();
+                setTimeout(()=>p2pV2Join(code,p2pV2JoinAttempt+1),900);
+            }else{
+                try{guestPeer.destroy()}catch(e){}activeConn=null;
+                tradeSetNotice('接続できませんでした。相手が部屋を開いているか、2台ともオンラインか確認してください。','#ff8888');
+                resetTradeState();setupPeer();renderTradeUI();
+            }
+        };
+        p2pV2JoinTimer=setTimeout(failOnce,18000);
+        conn.on('open',()=>{
+            opened=true;p2pV2ClearJoinTimer();activeConn=conn;p2pV2SessionToken='';p2pV2Attach(conn);
+            if(typeof setupConnectionListeners==='function')setupConnectionListeners(conn);
+            p2pV2SendHello(conn);renderTradeUI();
+        });
+        conn.on('error',()=>{p2pV2ClearJoinTimer();failOnce()});
+        conn.on('close',()=>{if(!tradeFinalized&&!opened){p2pV2ClearJoinTimer();failOnce()}});
+    });
+    guestPeer.on('error',err=>{
+        console.error('P2P v2 Guest Error:',err);
+        if(err&&['peer-unavailable','network','socket-error','server-error','disconnected'].includes(err.type)){p2pV2ClearJoinTimer();if(activeConn&&!activeConn.open)activeConn=null;if(p2pV2JoinAttempt<1)setTimeout(()=>p2pV2Join(code,p2pV2JoinAttempt+1),900);else{tradeSetNotice('P2P接続に失敗しました。部屋番号と通信環境を確認してください。','#ff8888');resetTradeState();setupPeer();renderTradeUI()}}else{tradeSetNotice('P2P通信エラーが発生しました。もう一度お試しください。','#ff8888');renderTradeUI()}
+    });
+    renderTradeUI();
+}
+/* createTradeRoom は既存コードを利用し、setupPeerだけ強化版へ差し替え */
+setupPeer=p2pV2SetupPeer;window.setupPeer=p2pV2SetupPeer;
+const _joinTradeRoomV2Original=window.joinTradeRoom;
+window.joinTradeRoom=function(){
+    audioSynth.playClick();
+    const input=document.getElementById('join-room-id');if(!input)return;
+    const code=input.value.trim();
+    if(!/^\d{4}$/.test(code)){tradeSetNotice('部屋番号は「4桁の数字」で入力してください。','#ff8888');renderTradeUI();return;}
+    resetTradeState();tradeLastResult=null;currentRoomCode=code;isHost=false;p2pV2JoinAttempt=0;p2pV2Join(code,0);
+};
+if(typeof window.setupConnectionListeners==='function'){
+    const _setupConnV2=window.setupConnectionListeners;
+    setupConnectionListeners=function(conn){
+        p2pV2Attach(conn);const r=_setupConnV2(conn);setTimeout(()=>{try{if(conn&&conn.open)p2pV2SendHello(conn)}catch(e){}},0);return r;
+    };
+}
+/* P2Pステータス表示をトレード画面の先頭へ後付け */
+const _renderTradeUIV2Base=window.renderTradeUI;
+if(typeof _renderTradeUIV2Base==='function'){
+    renderTradeUI=function(){
+        const r=_renderTradeUIV2Base();
+        const tr=modalBody.querySelector('.tr2');
+        if(tr && !tr.querySelector('.p2p-v2-status')){
+            const bar=tr.querySelector('.tr2-bar');
+            if(bar){const s=document.createElement('span');s.className='p2p-v2-status';s.style.color=(activeConn&&activeConn.open)?'#00ff66':'#ffd700';s.textContent=(activeConn&&activeConn.open)?'P2P 安定接続':'P2P 接続待機';bar.insertBefore(s,bar.firstChild)}
+        }
+        return r;
+    };
+}
 })();
 </script>
 
