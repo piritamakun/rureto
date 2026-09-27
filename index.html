@@ -4299,5 +4299,863 @@ window.rebirthV3Capacity=rebirthV3Capacity;
 })();
 </script>
 
+\n<!-- ============================================================
+     SYNTHESIS MACHINE V4
+     既存のクラフト機能は削除せず、UIから切り替えて合成マシンを提供
+     ============================================================ -->
+<style id="piritama-synthesis-v4-style">
+#craft-arrow-btn{display:none!important}
+.craft-shell,.craft-machine,.craft-recipe-btn,.craft-extra-recipe{display:none!important}
+#synthesis-arrow-btn{
+  position:fixed;top:50%;right:20px;transform:translateY(-50%);z-index:95;
+  width:72px;height:116px;padding:0;border:2px solid #00eaff;color:#00eaff;
+  background:rgba(0,25,40,.92);border-radius:10px;font-size:2.7em;font-weight:900;
+  cursor:pointer;box-shadow:0 0 20px rgba(0,234,255,.55),inset 0 0 14px rgba(0,234,255,.18);
+  display:flex;align-items:center;justify-content:center;transition:all .18s ease
+}
+#synthesis-arrow-btn:hover{background:rgba(0,234,255,.2);box-shadow:0 0 32px #00eaff,inset 0 0 18px rgba(0,234,255,.3);transform:translateY(-50%) scale(1.06)}
+#synthesis-arrow-btn:active{transform:translateY(-50%) scale(.94)}
+.synth-shell{width:min(1120px,calc(90vw - 30px));max-height:86vh;overflow-y:auto;overflow-x:hidden;padding:4px 8px 12px;text-align:center}
+.synth-title{margin:0 0 5px;color:#00eaff;font-size:1.7em;letter-spacing:2px;text-shadow:0 0 18px rgba(0,234,255,.7)}
+.synth-sub{margin:0 0 12px;color:#99b7c8;font-size:.78em;line-height:1.55}
+.synth-machine{display:grid;grid-template-columns:minmax(270px,.78fr) minmax(520px,1.5fr);gap:12px}
+.synth-left,.synth-right{background:rgba(0,0,0,.5);border:1px solid rgba(0,234,255,.3);border-radius:12px;padding:12px}
+.synth-left h3,.synth-right h3{margin:0 0 9px;color:#fff;font-size:1em}
+.synth-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.synth-slot{min-height:118px;border:2px dashed #35505f;border-radius:10px;padding:7px;background:rgba(0,20,35,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:.15s}
+.synth-slot:hover{border-color:#00eaff;transform:translateY(-1px)}
+.synth-slot.filled{border-style:solid;border-color:#00ff66;background:rgba(0,255,102,.08);box-shadow:0 0 12px rgba(0,255,102,.18)}
+.synth-slot img{width:64px;height:64px;object-fit:contain}
+.synth-slot-name{font-size:.7em;font-weight:bold;color:#fff;line-height:1.2;margin-top:3px;word-break:break-word}
+.synth-slot-meta{font-size:.59em;color:#9bb2bf;margin-top:3px}
+.synth-base-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:7px;max-height:330px;overflow-y:auto;padding:4px}
+.synth-base-card{position:relative;border:2px solid transparent;border-radius:9px;padding:5px;background:rgba(0,0,0,.45);cursor:pointer;transition:.15s;text-align:center}
+.synth-base-card:hover{border-color:rgba(0,234,255,.65);transform:translateY(-2px)}
+.synth-base-card.used{opacity:.3;cursor:not-allowed;transform:none}
+.synth-base-card.sel{border-color:#00ff66;background:rgba(0,255,102,.14);box-shadow:0 0 12px rgba(0,255,102,.25)}
+.synth-base-card img{width:62px;height:62px;object-fit:contain;display:block;margin:auto}
+.synth-base-name{font-size:.61em;font-weight:bold;color:#fff;line-height:1.2;word-break:break-word}
+.synth-base-rar{font-size:.56em;margin-top:2px}
+.synth-tag{font-size:.52em;margin-top:2px;color:#8cf7ff;line-height:1.25}
+.synth-prob-box{padding:10px;border:1px solid rgba(0,234,255,.25);border-radius:10px;background:rgba(0,234,255,.04);text-align:left}
+.synth-rarity-bars{display:grid;gap:5px;margin-top:7px}
+.synth-rarity-row{display:grid;grid-template-columns:74px 1fr 45px;gap:7px;align-items:center;font-size:.65em}
+.synth-bar{height:9px;border-radius:5px;background:#172532;overflow:hidden;border:1px solid #334b5c}
+.synth-bar i{display:block;height:100%;background:linear-gradient(90deg,#00eaff,#00ff66);width:0;transition:width .2s}
+.synth-result{margin-top:10px;padding:11px;border-radius:10px;border:1px solid #334b5c;background:rgba(0,0,0,.4);text-align:center;min-height:92px}
+.synth-result strong{color:#fff}
+.synth-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:11px}
+.synth-actions button{padding:10px 16px;font-size:.82em}
+.synth-hint{font-size:.61em;color:#8ba1ad;line-height:1.55;margin-top:8px}
+.synth-success{animation:synthPop .55s cubic-bezier(.2,1.25,.4,1) both}
+@keyframes synthPop{0%{transform:scale(.55);opacity:0;filter:brightness(1)}65%{transform:scale(1.08);opacity:1;filter:brightness(1.7)}100%{transform:scale(1);opacity:1;filter:brightness(1)}}
+@media(max-width:760px){
+ #synthesis-arrow-btn{right:8px;width:56px;height:92px;font-size:2em}
+ .synth-shell{width:100%;max-height:82vh}
+ .synth-machine{grid-template-columns:1fr}
+ .synth-base-grid{max-height:250px}
+}
+</style>
+<script id="piritama-synthesis-v4-script">
+(function(){
+'use strict';
+
+/* 新キャラクター：画像は後で差し替え可能。現時点では安全な仮画像を使用。 */
+const SYNTH_DORAGONI_ID='doragoni_kyukanba';
+const SYNTH_DORAGONI_IMG='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width=%22240%22 height=%22240%22 viewBox=%220 0 240 240%22%3E%3Crect width=%22240%22 height=%22240%22 rx=%2230%22 fill=%22030e18%22 stroke=%2200eaff%22 stroke-width=%226%22/%3E%3Ctext x=%22120%22 y=%2290%22 fill=%2200eaff%22 font-size=%2223%22 font-family=%22monospace%22 text-anchor=%22middle%22%3EDorag%C5%8Dn%C4%AB%3C%2Ftext%3E%3Ctext x=%22120%22 y=%22125%22 fill=%22%23ffffff%22 font-size=%2220%22 font-family=%22monospace%22 text-anchor=%22middle%22%3EKy%C5%ABkanb%C4%81%3C%2Ftext%3E%3Cpath d=%22M65 165 L95 135 L115 155 L150 115 L175 140%22 fill=%22none%22 stroke=%22%23a8faff%22 stroke-width=%228%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C%2Fsvg%3E';
+if(!characters.some(c=>c&&c.id===SYNTH_DORAGONI_ID)){
+  characters.push({id:SYNTH_DORAGONI_ID,name:'Doragōnī Kyūkanbā',img:SYNTH_DORAGONI_IMG,rarity:'シークレット',color:'#00eaff',synthesisOnly:true});
+}
+
+/* 4体合成：レア度順。通常の混合は「最も多いレア度」、同数なら高レア度を採用。 */
+const SYNTH_RARITY_ORDER=['アンコモン','レア','レジェンド','ゴット','シークレット','サンダー'];
+const SYNTH_RARITY_RANK={アンコモン:1,レア:2,レジェンド:3,ゴット:4,シークレット:5,サンダー:6};
+const SYNTH_COST={アンコモン:5000,レア:12000,レジェンド:50000,ゴット:150000,シークレット:400000,サンダー:900000};
+let synthSelected=[null,null,null,null];
+let synthBusy=false;
+
+function synthParts(item){
+  const p=String(item||'').split(':');
+  return {id:p[0]||'',mut:p[1]||'normal',buff:p[2]||'none'};
+}
+function synthChar(id){return characters.find(c=>c&&c.id===id)||null}
+function synthMutLabel(mut){return mut==='bolt'?'BOLT ⚡':(mut==='normal'?'':mut.toUpperCase())}
+function synthCardFilter(p){
+  let f='';
+  if(p.mut==='gold')f+=' filter-gold';
+  if(p.mut==='diamond')f+=' filter-diamond';
+  if(p.mut==='rainbow')f+=' filter-rainbow';
+  if(p.mut==='bolt')f+=' filter-bolt';
+  if(p.buff==='thunder')f+=' filter-thunder';
+  if(p.buff==='water')f+=' filter-water';
+  return f;
+}
+function synthSelectedList(){return synthSelected.filter(i=>Number.isInteger(i)&&i>=0&&i<baseItems.length)}
+function synthIsSelected(i){return synthSelected.indexOf(i)>=0}
+function synthClearInvalid(){synthSelected=synthSelected.map(i=>(Number.isInteger(i)&&i>=0&&i<baseItems.length)?i:null)}
+function synthSpecial(){
+  const ids=synthSelectedList().map(i=>synthParts(baseItems[i]).id);
+  if(ids.length!==4)return false;
+  return ['tomaho_erefanto','pi_poteto_robotto','potepote_burazazu','sanda_doragon'].every(id=>ids.includes(id)) && new Set(ids).size===4;
+}
+function synthDominantRarity(){
+  const counts={};
+  synthSelectedList().forEach(i=>{const c=synthChar(synthParts(baseItems[i]).id);if(c)counts[c.rarity]=(counts[c.rarity]||0)+1});
+  let best=null,bestCount=-1;
+  Object.keys(counts).forEach(r=>{
+    const n=counts[r]||0;
+    if(n>bestCount || (n===bestCount && (SYNTH_RARITY_RANK[r]||0)>(SYNTH_RARITY_RANK[best]||0))){best=r;bestCount=n}
+  });
+  return {rarity:best,count:bestCount,counts};
+}
+function synthMutationChance(){
+  let n=0;synthSelectedList().forEach(i=>{if(synthParts(baseItems[i]).mut!=='normal')n++});
+  return Math.min(32,n*8);
+}
+function synthBuffChance(){
+  let n=0;synthSelectedList().forEach(i=>{if(synthParts(baseItems[i]).buff!=='none')n++});
+  return Math.min(32,n*8);
+}
+function synthVariantRoll(){
+  const items=synthSelectedList().map(i=>baseItems[i]);
+  const muts=[],buffs=[];
+  items.forEach(item=>{const p=synthParts(item);if(p.mut!=='normal')muts.push(p.mut);if(p.buff!=='none')buffs.push(p.buff)});
+  let mut='normal',buff='none';
+  if(muts.length && Math.random()*100<synthMutationChance()){
+    const weights={gold:60,diamond:25,rainbow:12,bolt:3};
+    let total=muts.reduce((s,m)=>s+(weights[m]||1),0),r=Math.random()*total;
+    for(const m of muts){r-=weights[m]||1;if(r<=0){mut=m;break}}
+  }
+  if(buffs.length && Math.random()*100<synthBuffChance())buff=buffs[Math.floor(Math.random()*buffs.length)];
+  return {mut,buff};
+}
+function synthEligibleChars(rarity){
+  const pool=characters.filter(c=>c&&c.rarity===rarity);
+  if(rarity==='シークレット')return pool;
+  return pool;
+}
+function synthWeightedResult(rarity){
+  const pool=synthEligibleChars(rarity);
+  if(!pool.length)return null;
+  if(rarity==='シークレット'){
+    const d=pool.find(c=>c.id===SYNTH_DORAGONI_ID);
+    if(d){
+      const others=pool.filter(c=>c.id!==SYNTH_DORAGONI_ID);
+      if(Math.random()<0.03)return d;
+      if(!others.length)return d;
+      return others[Math.floor(Math.random()*others.length)];
+    }
+  }
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function synthResultChar(){
+  if(synthSpecial())return synthChar(SYNTH_DORAGONI_ID);
+  const d=synthDominantRarity();
+  return d.rarity?synthWeightedResult(d.rarity):null;
+}
+function synthPercent(n){return (Math.round(n*10)/10).toFixed(1).replace('.0','')+'%'}
+function synthProbabilityHtml(){
+  const selected=synthSelectedList();
+  const d=synthDominantRarity();
+  const special=synthSpecial();
+  let html='<div class="synth-prob-box">';
+  if(!selected.length){html+='<div style="color:#7d8e98;font-size:.78em;">基地からキャラクターを4体入れてください。</div>'}
+  else{
+    html+='<div style="font-size:.78em;color:#fff;font-weight:bold;">合成結果のレア度</div>';
+    SYNTH_RARITY_ORDER.forEach(r=>{
+      const n=d.counts[r]||0,p=n/4*100;
+      html+='<div class="synth-rarity-bars"><div class="synth-rarity-row"><span>'+r+'</span><div class="synth-bar"><i style="width:'+p+'%"></i></div><b>'+synthPercent(p)+'</b></div></div>';
+    });
+    if(special){html+='<div style="margin-top:8px;color:#00ff66;font-weight:bold;font-size:.76em;">★ 特別配合成立：Doragōnī Kyūkanbā 確定</div>'}
+    else if(d.rarity){html+='<div style="margin-top:8px;color:#ffd700;font-size:.72em;">→ 実際の排出レア度：<b style="color:#fff;">'+d.rarity+'</b> 100%</div>'}
+    html+='<div style="margin-top:8px;font-size:.68em;color:#8da6b4;">※同数の場合は、より高いレア度を結果レア度にします。</div>';
+    html+='<div style="margin-top:7px;font-size:.7em;color:#8cf7ff;">変異継承確率：<b>'+synthPercent(synthMutationChance())+'</b>　／　バフ継承確率：<b>'+synthPercent(synthBuffChance())+'</b></div>';
+    if(d.rarity)html+='<div style="margin-top:5px;font-size:.66em;color:#94a3b8;">合成費用：$'+formatMoney(SYNTH_COST[d.rarity]||5000)+'</div>';
+  }
+  html+='</div>';
+  return html;
+}
+function synthRenderResultPreview(result){
+  const selected=synthSelectedList();
+  const d=synthDominantRarity();
+  const special=synthSpecial();
+  let html='<div class="synth-result">';
+  if(!selected.length){html+='<div style="color:#71818c;padding:22px 5px;">4体選択すると合成確率が表示されます。</div>'}
+  else{
+    const c=special?synthChar(SYNTH_DORAGONI_ID):(d.rarity?synthEligibleChars(d.rarity)[0]:null);
+    if(c){html+='<img src="'+c.img+'" style="width:74px;height:74px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 0 9px '+(c.color||'#00eaff')+');">';}
+    html+='<div style="margin-top:4px;color:#fff;font-size:.8em;font-weight:bold;">'+(special?'Doragōnī Kyūkanbā（確定）':(c?c.name:'結果候補を計算中'))+'</div>';
+    if(d.rarity)html+='<div style="font-size:.63em;margin-top:2px;color:'+((c&&c.color)||'#00eaff')+';">レア度：'+(c?c.rarity:d.rarity)+'</div>';
+  }
+  html+='</div>';
+  return html;
+}
+function synthRender(){
+  synthClearInvalid();
+  const used=new Set(synthSelectedList());
+  let baseHtml='';
+  baseItems.forEach((item,i)=>{
+    const p=synthParts(item),c=synthChar(p.id);if(!c)return;
+    const sel=used.has(i);
+    const tags=[];if(p.mut!=='normal')tags.push(synthMutLabel(p.mut));if(p.buff!=='none')tags.push(p.buff.toUpperCase()+' BUFF');
+    baseHtml+='<div class="synth-base-card '+(sel?'sel ':'')+'" onclick="synthToggleBase('+i+')">'+
+      '<img src="'+c.img+'" class="'+synthCardFilter(p)+'" alt="'+c.id+'">'+
+      '<div class="synth-base-name">'+c.name+'</div>'+
+      '<div class="synth-base-rar" style="color:'+(c.color||'#fff')+';">'+c.rarity+'</div>'+
+      (tags.length?'<div class="synth-tag">'+tags.join(' / ')+'</div>':'')+
+      '</div>';
+  });
+  let slots='';
+  for(let s=0;s<4;s++){
+    const idx=synthSelected[s];
+    if(Number.isInteger(idx)&&baseItems[idx]){
+      const p=synthParts(baseItems[idx]),c=synthChar(p.id);
+      slots+='<div class="synth-slot filled" onclick="synthClearSlot('+s+')"><img src="'+(c?c.img:'')+'" class="'+synthCardFilter(p)+'"><div class="synth-slot-name">'+(c?c.name:'???')+'</div><div class="synth-slot-meta">'+(c?c.rarity:'')+(p.mut!=='normal'?' ｜ '+synthMutLabel(p.mut):'')+(p.buff!=='none'?' ｜ '+p.buff.toUpperCase():'')+'</div><div style="font-size:.52em;color:#ff9b9b;margin-top:3px;">クリックで解除</div></div>';
+    }else slots+='<div class="synth-slot"><div style="font-size:2em;color:#38515e;">+</div><div style="font-size:.62em;color:#71828d;margin-top:4px;">素材'+(s+1)+'</div></div>';
+  }
+  const d=synthDominantRarity();
+  const special=synthSpecial();
+  let action='';
+  if(synthSelectedList().length===4 && d.rarity){
+    const cost=special?900000:(SYNTH_COST[d.rarity]||5000);
+    action='<div class="synth-actions"><button onclick="synthExecute()" style="border-color:#00ff66;color:#00ff66;" '+((synthBusy||money<cost)?'disabled':'')+'>⚡ 合成する $'+formatMoney(cost)+'</button><button onclick="synthReset()" style="border-color:#888;color:#aaa;">4体リセット</button></div>';
+    if(money<cost)action+='<div style="font-size:.66em;color:#ff7777;margin-top:5px;">お金が足りません。</div>';
+  } else action='<div class="synth-actions"><button onclick="synthReset()" style="border-color:#888;color:#aaa;">選択をリセット</button></div>';
+
+  modal.style.display='block';
+  modalBody.innerHTML='<div class="synth-shell">'+
+    '<h2 class="synth-title">SYNTHESIS MACHINE</h2>'+
+    '<p class="synth-sub">基地から4体を投入すると、投入されたレア度の分布から合成結果レア度を決定します。レアな個体を多く入れるほど、そのレア度で合成される構成になります。</p>'+
+    '<div class="synth-machine">'+
+      '<div class="synth-left"><h3>① 基地から4体を選択</h3><div class="synth-slots">'+slots+'</div><div class="synth-base-grid">'+(baseHtml||'<div style="grid-column:1/-1;color:#778793;padding:25px;">基地にキャラクターがいません。</div>')+'</div></div>'+
+      '<div class="synth-right"><h3>② 確率・合成結果</h3>'+synthProbabilityHtml()+synthRenderResultPreview() + action + '<div class="synth-hint">素材に変異・バフが付いている場合は、画面に継承確率が表示されます。4体の特別配合「トマホーエレファント＋ピーポテトロボット＋ポテポテブラザーズ＋サンダードラゴン」はDoragōnī Kyūkanbāが確定です。</div></div>'+
+    '</div></div>';
+}
+function synthToggleBase(i){
+  if(synthBusy || !baseItems[i])return;
+  const pos=synthSelected.indexOf(i);
+  if(pos>=0){synthSelected[pos]=null}else{
+    const empty=synthSelected.indexOf(null);if(empty<0)return;
+    synthSelected[empty]=i;
+  }
+  synthRender();
+}
+function synthClearSlot(s){if(synthBusy)return;synthSelected[s]=null;synthRender()}
+function synthReset(){synthSelected=[null,null,null,null];synthRender()}
+function synthExecute(){
+  if(synthBusy)return;
+  synthClearInvalid();
+  const selected=synthSelectedList();
+  if(selected.length!==4){synthRender();return}
+  if(new Set(selected).size!==4){synthReset();return}
+  const special=synthSpecial();
+  const d=synthDominantRarity();
+  const cost=special?900000:(SYNTH_COST[d.rarity]||0);
+  if(!d.rarity || money<cost){synthRender();return}
+  const chars=selected.map(i=>baseItems[i]).filter(v=>typeof v==='string'&&v);
+  if(chars.length!==4){synthRender();return}
+  const resultChar=special?synthChar(SYNTH_DORAGONI_ID):synthWeightedResult(d.rarity);
+  if(!resultChar){synthRender();return}
+  const variant=synthVariantRoll();
+  synthBusy=true;
+  money-=cost;
+  selected.slice().sort((a,b)=>b-a).forEach(i=>{if(i>=0&&i<baseItems.length)baseItems.splice(i,1)});
+  const resultId=resultChar.id+':'+variant.mut+':'+variant.buff;
+  baseItems.push(resultId);
+  unlockedCharacters[resultChar.id+':'+variant.mut]=true;
+  saveState();updateUI();
+  const labels=[];if(variant.mut!=='normal')labels.push(variant.mut==='bolt'?'BOLT ⚡':variant.mut.toUpperCase());if(variant.buff!=='none')labels.push(variant.buff.toUpperCase()+' BUFF');
+  modal.style.display='block';
+  let filter=synthCardFilter(variant);
+  modalBody.innerHTML='<div class="synth-shell synth-success"><h2 class="synth-title">SYNTHESIS COMPLETE!</h2><div style="font-size:.78em;color:#9eb0ba;margin-bottom:8px;">4体を合成しました</div><div style="padding:15px;border:2px solid '+(resultChar.color||'#00eaff')+';border-radius:12px;background:rgba(0,0,0,.5);box-shadow:0 0 24px '+(resultChar.color||'#00eaff')+'55;"><img src="'+resultChar.img+'" class="'+filter+'" style="width:170px;height:170px;object-fit:contain;"><div style="font-size:1.2em;font-weight:bold;color:#fff;margin-top:6px;">'+resultChar.name+'</div><div style="font-size:.8em;color:'+(resultChar.color||'#fff')+';margin-top:3px;">'+resultChar.rarity+(special?' ｜ SPECIAL GUARANTEE':'')+'</div>'+(labels.length?'<div style="margin-top:6px;color:#8cf7ff;font-size:.75em;font-weight:bold;">'+labels.join(' / ')+'</div>':'<div style="margin-top:6px;color:#687984;font-size:.68em;">通常個体</div>')+'</div><div class="synth-actions"><button onclick="showSynthesisMachine()" style="border-color:#00eaff;color:#00eaff;">合成マシンへ戻る</button><button onclick="showBaseMenu()" style="border-color:#b967ff;color:#b967ff;">基地を見る</button></div></div>';
+  setTimeout(()=>{synthBusy=false},700);
+}
+function showSynthesisMachine(){audioSynth.playClick();synthRender()}
+window.showSynthesisMachine=showSynthesisMachine;window.synthToggleBase=synthToggleBase;window.synthClearSlot=synthClearSlot;window.synthReset=synthReset;window.synthExecute=synthExecute;
+
+/* クラフトマシーンをUI上から合成マシンへ差し替え */
+window.showCraftMachine=showSynthesisMachine;
+try{showCraftMachine=showSynthesisMachine}catch(e){}
+
+/* 既存の→ボタンは隠し、新しい→を生成 */
+const oldArrow=document.getElementById('craft-arrow-btn');
+if(oldArrow){oldArrow.style.display='none';oldArrow.setAttribute('aria-hidden','true');}
+let newArrow=document.getElementById('synthesis-arrow-btn');
+if(!newArrow){
+  newArrow=document.createElement('button');newArrow.id='synthesis-arrow-btn';newArrow.type='button';newArrow.textContent='→';newArrow.title='合成マシーン';newArrow.setAttribute('aria-label','合成マシーン');
+  newArrow.addEventListener('click',showSynthesisMachine);document.body.appendChild(newArrow);
+}
+if(typeof showCollectionMenu==='function'){
+  const oldCollection=showCollectionMenu;
+  window.__legacyCollectionMenuV4=oldCollection;
+  window.showCollectionMenu=function(){showSynthesisMachine()};
+}
+
+/* 新キャラクター画像の後日差し替え用ヘルパー */
+window.setDoragoniKyukanbaImage=function(dataUrl){
+  if(typeof dataUrl!=='string'||dataUrl.indexOf('data:image/')!==0)return false;
+  const c=characters.find(x=>x&&x.id===SYNTH_DORAGONI_ID);if(!c)return false;
+  c.img=dataUrl;saveState();updateUI();if(modal&&modal.style.display==='block')synthRender();return true;
+};
+})();
+</script>
+
+
+<!-- ============================================================
+     PATCH v5 — KYUKANBA / GLOBAL P2P PRESENCE / ADMIN BROADCAST
+     既存機能を維持し、必要な箇所だけを後付けで補強
+     ============================================================ -->
+<style id="piritama-v5-style">
+/* 特別配合のレシピそのものは画面に表示しない */
+.synth-hint{display:none!important}
+
+/* 設定画面のP2Pオンライン人数 */
+.global-online-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    color:#00ff66;
+    font-weight:bold;
+}
+.global-online-dot{
+    width:8px;height:8px;border-radius:50%;
+    background:#00ff66;
+    box-shadow:0 0 10px #00ff66;
+    animation:globalOnlinePulse 1.2s infinite alternate;
+}
+@keyframes globalOnlinePulse{
+    from{opacity:.45;transform:scale(.85)}
+    to{opacity:1;transform:scale(1.15)}
+}
+
+/* 全員向け管理者メッセージ */
+#global-admin-banner{
+    position:fixed;
+    top:12px;
+    left:50%;
+    transform:translateX(-50%) translateY(-140%);
+    z-index:2500;
+    width:min(900px,calc(100vw - 32px));
+    box-sizing:border-box;
+    padding:14px 46px 14px 18px;
+    border:2px solid #00eaff;
+    border-radius:10px;
+    background:rgba(2,12,25,.96);
+    color:#fff;
+    box-shadow:0 0 28px rgba(0,234,255,.5), inset 0 0 14px rgba(0,234,255,.12);
+    font-size:1.08em;
+    font-weight:bold;
+    line-height:1.5;
+    text-align:center;
+    backdrop-filter:blur(10px);
+    pointer-events:none;
+    opacity:0;
+    transition:transform .28s ease,opacity .28s ease;
+}
+#global-admin-banner.show{
+    transform:translateX(-50%) translateY(0);
+    opacity:1;
+}
+#global-admin-banner .global-admin-label{
+    display:block;
+    color:#00eaff;
+    font-size:.68em;
+    letter-spacing:2px;
+    margin-bottom:4px;
+}
+#global-admin-banner .global-admin-text{
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+}
+
+/* 管理者メッセージ入力 */
+#tab-admin-message textarea{
+    width:100%;
+    min-height:110px;
+    resize:vertical;
+    box-sizing:border-box;
+    background:#000;
+    color:#fff;
+    border:1px solid #00eaff;
+    border-radius:6px;
+    padding:10px;
+    font-family:inherit;
+    font-size:.9em;
+}
+</style>
+
+<div id="global-admin-banner" aria-live="polite">
+    <span class="global-admin-label">[ ADMIN MESSAGE ]</span>
+    <span id="global-admin-banner-text" class="global-admin-text"></span>
+</div>
+
+<script id="piritama-v5-script">
+(function(){
+'use strict';
+
+/* ------------------------------------------------------------
+   1) ドラゴーニきゅうかんばーを正式登録
+   ・画像ファイル名：ドラゴーニきゅうかんばー-Photoroom.png
+   ・レア度：サンダー
+   ・サンダー内では最上位として扱うため thunderRank を明示
+   ------------------------------------------------------------ */
+const V5_DORAGONI_ID='doragoni_kyukanba';
+const V5_DORAGONI_IMG='ドラゴーニきゅうかんばー-Photoroom.png';
+const V5_DORAGONI=characters.find(c=>c&&c.id===V5_DORAGONI_ID);
+if(V5_DORAGONI){
+    V5_DORAGONI.name='ドラゴーニきゅうかんばー';
+    V5_DORAGONI.img=V5_DORAGONI_IMG;
+    V5_DORAGONI.rarity='サンダー';
+    V5_DORAGONI.color='#e6e600';
+    V5_DORAGONI.thunderRank=1;
+    V5_DORAGONI.synthesisOnly=false;
+}
+
+/* サンダー排出時だけ、ドラゴーニを他のサンダーより低い重みで抽選 */
+const _v5OriginalRollCharacter=rollCharacter;
+function v5PickThunder(pool){
+    if(!Array.isArray(pool)||!pool.length)return null;
+    const weighted=pool.map(c=>({c,w:(c&&c.id===V5_DORAGONI_ID)?1:10}));
+    let total=weighted.reduce((s,x)=>s+x.w,0);
+    let r=Math.random()*total;
+    for(const x of weighted){r-=x.w;if(r<0)return x.c;}
+    return weighted[weighted.length-1].c;
+}
+rollCharacter=function(guaranteedRarity=null){
+    /* 既存の保証ロジックを維持しつつ、サンダーだけ選択方式を補正 */
+    if(guaranteedRarity){
+        const pool=characters.filter(c=>c.rarity===guaranteedRarity);
+        if(pool.length>0){
+            return guaranteedRarity==='サンダー'?v5PickThunder(pool):pool[Math.floor(Math.random()*pool.length)];
+        }
+    }
+    const rand=Math.random()*100;
+    if(rand<0.5){
+        return v5PickThunder(characters.filter(c=>c.rarity==='サンダー'));
+    }
+    return _v5OriginalRollCharacter(guaranteedRarity);
+};
+window.rollCharacter=rollCharacter;
+
+/* ------------------------------------------------------------
+   2) 管理者パネルからラック操作を削除
+   ------------------------------------------------------------ */
+(function removeLuckControls(){
+    const luckTab=document.querySelector('#tab-luck');
+    if(luckTab){
+        Array.from(luckTab.querySelectorAll('.admin-row')).forEach(row=>{
+            if((row.textContent||'').includes('ラック追加'))row.remove();
+        });
+    }
+    const luckTabButton=document.querySelector('.admin-tab[onclick*="tab-luck"]');
+    if(luckTabButton)luckTabButton.textContent='バフ管理';
+})();
+
+/* ------------------------------------------------------------
+   3) 全体P2Pプレゼンス
+   ・固定のPeerJSハブIDを1台が取得
+   ・他端末はP2Pでハブへ接続
+   ・ハートビートで人数をリアルタイム更新
+   ・ハブ離脱時は残り端末が再選出を試行
+   ------------------------------------------------------------ */
+const V5_GLOBAL_HUB_ID='piritama-global-presence-v5';
+const V5_HEARTBEAT_MS=4000;
+const V5_TTL_MS=12000;
+const V5_RETRY_MS=2500;
+
+let v5GlobalPeer=null;
+let v5GlobalConn=null;
+let v5GlobalIsHub=false;
+let v5GlobalRetryTimer=null;
+let v5GlobalHubTimer=null;
+let v5GlobalClientTimer=null;
+let v5GlobalOnlineCount=1;
+const v5GlobalConnections=new Map();
+const v5SeenActions=new Set();
+
+function v5PeerOptions(){
+    if(typeof p2pV2PeerOptions==='function')return p2pV2PeerOptions();
+    return {
+        debug:1,
+        config:{
+            iceServers:[
+                {urls:'stun:stun.l.google.com:19302'},
+                {urls:'stun:stun1.l.google.com:19302'},
+                {urls:'stun:stun2.l.google.com:19302'},
+                {urls:'stun:stun.cloudflare.com:3478'}
+            ],
+            iceTransportPolicy:'all',
+            iceCandidatePoolSize:10
+        }
+    };
+}
+
+function v5SafeDestroyPeer(){
+    if(v5GlobalHubTimer){clearInterval(v5GlobalHubTimer);v5GlobalHubTimer=null}
+    if(v5GlobalClientTimer){clearInterval(v5GlobalClientTimer);v5GlobalClientTimer=null}
+    for(const [id,conn] of v5GlobalConnections){
+        try{conn.close()}catch(e){}
+        v5GlobalConnections.delete(id);
+    }
+    if(v5GlobalConn){try{v5GlobalConn.close()}catch(e){}v5GlobalConn=null}
+    if(v5GlobalPeer){try{v5GlobalPeer.destroy()}catch(e){}v5GlobalPeer=null}
+    v5GlobalIsHub=false;
+}
+
+function v5UpdateOnlineUI(count){
+    const safe=Math.max(1,Number(count)||1);
+    v5GlobalOnlineCount=safe;
+    const els=document.querySelectorAll('#global-online-count');
+    els.forEach(el=>{el.textContent=safe.toLocaleString()+'人'});
+}
+
+function v5ScheduleStart(ms=V5_RETRY_MS){
+    if(v5GlobalRetryTimer)return;
+    v5GlobalRetryTimer=setTimeout(()=>{
+        v5GlobalRetryTimer=null;
+        v5StartGlobalPresence();
+    },ms);
+}
+
+function v5RememberAction(id){
+    if(!id)return true;
+    if(v5SeenActions.has(id))return false;
+    v5SeenActions.add(id);
+    if(v5SeenActions.size>120){
+        const first=v5SeenActions.values().next().value;
+        v5SeenActions.delete(first);
+    }
+    return true;
+}
+
+function v5ApplyGlobalBuff(data){
+    if(!data||typeof activeMutations==='undefined')return;
+    const type=(data.mutation==='water')?'water':'thunder';
+    const started=Number(data.startedAt)||Date.now();
+    const duration=Math.max(1000,Number(data.durationMs)||60000);
+    const endAt=started+duration;
+    if(endAt<=Date.now())return;
+    activeMutations[type]=Math.max(Number(activeMutations[type])||0,endAt);
+    try{updateStatusEffects()}catch(e){}
+}
+
+function v5ShowGlobalAdminMessage(data){
+    if(!data)return;
+    const msg=String(data.message||'').trim();
+    if(!msg)return;
+    const wrap=document.getElementById('global-admin-banner');
+    const textEl=document.getElementById('global-admin-banner-text');
+    if(!wrap||!textEl)return;
+    textEl.textContent=msg;
+    wrap.classList.add('show');
+    clearTimeout(v5ShowGlobalAdminMessage._timer);
+    const duration=Math.max(2000,Math.min(20000,Number(data.durationMs)||8000));
+    v5ShowGlobalAdminMessage._timer=setTimeout(()=>wrap.classList.remove('show'),duration);
+}
+
+function v5ApplyGlobalAction(data){
+    if(!data||!v5RememberAction(data.actionId))return;
+    if(data.type==='GLOBAL_ADMIN_BUFF')v5ApplyGlobalBuff(data);
+    if(data.type==='GLOBAL_ADMIN_MESSAGE')v5ShowGlobalAdminMessage(data);
+}
+
+function v5BroadcastHub(data){
+    for(const [id,conn] of v5GlobalConnections){
+        if(!conn||!conn.open){v5GlobalConnections.delete(id);continue}
+        try{conn.send(data)}catch(e){}
+    }
+}
+
+function v5BroadcastPresence(force){
+    if(!v5GlobalIsHub)return;
+    const now=Date.now();
+    let changed=false;
+    for(const [id,rec] of v5GlobalConnections){
+        if(!rec||!rec.conn||!rec.conn.open||now-(rec.lastSeen||0)>V5_TTL_MS){
+            try{rec&&rec.conn&&rec.conn.close()}catch(e){}
+            v5GlobalConnections.delete(id);
+            changed=true;
+        }
+    }
+    const count=1+v5GlobalConnections.size;
+    if(force||changed||count!==v5GlobalOnlineCount){
+        v5UpdateOnlineUI(count);
+    }else{
+        v5UpdateOnlineUI(count);
+    }
+    const payload={type:'GLOBAL_PRESENCE',count:count,at:now};
+    v5BroadcastHub(payload);
+}
+
+function v5HandleHubData(conn,data){
+    if(!data||typeof data!=='object')return;
+    const rec=v5GlobalConnections.get(conn.peer);
+    if(data.type==='GLOBAL_HELLO'){
+        v5GlobalConnections.set(conn.peer,{conn,lastSeen:Date.now(),userId:String(data.userId||'')});
+        try{conn.send({type:'GLOBAL_PRESENCE',count:1+v5GlobalConnections.size,at:Date.now()})}catch(e){}
+        v5BroadcastPresence(true);
+        return;
+    }
+    if(rec)rec.lastSeen=Date.now();
+    if(data.type==='GLOBAL_HEARTBEAT'){
+        try{conn.send({type:'GLOBAL_PRESENCE',count:1+v5GlobalConnections.size,at:Date.now()})}catch(e){}
+        return;
+    }
+    if(data.type==='GLOBAL_ADMIN_BUFF'||data.type==='GLOBAL_ADMIN_MESSAGE'){
+        v5ApplyGlobalAction(data);
+        v5BroadcastHub(data);
+        return;
+    }
+}
+
+function v5AttachHubConnection(conn){
+    if(!conn)return;
+    const peerId=String(conn.peer||'');
+    const add=()=>{
+        v5GlobalConnections.set(peerId,{conn,lastSeen:Date.now(),userId:''});
+        try{conn.send({type:'GLOBAL_PRESENCE',count:1+v5GlobalConnections.size,at:Date.now()})}catch(e){}
+        v5BroadcastPresence(true);
+    };
+    if(conn.open)add();else conn.on('open',add);
+    conn.on('data',data=>v5HandleHubData(conn,data));
+    conn.on('close',()=>{
+        if(v5GlobalConnections.has(peerId)){
+            v5GlobalConnections.delete(peerId);
+            v5BroadcastPresence(true);
+        }
+    });
+    conn.on('error',()=>{
+        if(v5GlobalConnections.has(peerId)){
+            v5GlobalConnections.delete(peerId);
+            v5BroadcastPresence(true);
+        }
+    });
+}
+
+function v5BecomeHub(p){
+    v5GlobalPeer=p;
+    v5GlobalIsHub=true;
+    v5UpdateOnlineUI(1);
+    p.on('connection',conn=>v5AttachHubConnection(conn));
+    p.on('disconnected',()=>{
+        if(!v5GlobalIsHub)return;
+        v5SafeDestroyPeer();
+        v5ScheduleStart(1000);
+    });
+    p.on('close',()=>{
+        if(!v5GlobalIsHub && v5GlobalPeer!==p)return;
+        v5SafeDestroyPeer();
+        v5ScheduleStart(1200);
+    });
+    v5GlobalHubTimer=setInterval(()=>v5BroadcastPresence(false),3000);
+    v5BroadcastPresence(true);
+}
+
+function v5ConnectAsGuest(){
+    if(!window.Peer)return;
+    const p=new Peer(undefined,v5PeerOptions());
+    v5GlobalPeer=p;
+    v5GlobalIsHub=false;
+    p.on('open',()=>{
+        const conn=p.connect(V5_GLOBAL_HUB_ID,{
+            reliable:true,
+            serialization:'json',
+            metadata:{kind:'global-presence-v5',userId:myUserId}
+        });
+        v5GlobalConn=conn;
+        let opened=false;
+        conn.on('open',()=>{
+            opened=true;
+            try{conn.send({type:'GLOBAL_HELLO',userId:myUserId,at:Date.now()})}catch(e){}
+            if(v5GlobalClientTimer)clearInterval(v5GlobalClientTimer);
+            v5GlobalClientTimer=setInterval(()=>{
+                if(conn&&conn.open){
+                    try{conn.send({type:'GLOBAL_HEARTBEAT',userId:myUserId,at:Date.now()})}catch(e){}
+                }
+            },V5_HEARTBEAT_MS);
+        });
+        conn.on('data',data=>{
+            if(!data||typeof data!=='object')return;
+            if(data.type==='GLOBAL_PRESENCE'){
+                v5UpdateOnlineUI(data.count);
+                return;
+            }
+            if(data.type==='GLOBAL_ADMIN_BUFF'||data.type==='GLOBAL_ADMIN_MESSAGE'){
+                v5ApplyGlobalAction(data);
+            }
+        });
+        conn.on('close',()=>{
+            if(v5GlobalConn===conn)v5GlobalConn=null;
+            if(v5GlobalClientTimer){clearInterval(v5GlobalClientTimer);v5GlobalClientTimer=null}
+            if(v5GlobalPeer===p){try{p.destroy()}catch(e){}v5GlobalPeer=null}
+            if(opened)v5ScheduleStart(700); else v5ScheduleStart(900);
+        });
+        conn.on('error',()=>{
+            if(v5GlobalPeer===p){try{p.destroy()}catch(e){}v5GlobalPeer=null}
+            v5ScheduleStart(1000);
+        });
+    });
+    p.on('error',err=>{
+        if(err&&err.type==='peer-unavailable'){
+            try{p.destroy()}catch(e){}
+            v5GlobalPeer=null;
+            v5ScheduleStart(800);
+            return;
+        }
+        if(err&&['network','socket-error','server-error','disconnected'].includes(err.type)){
+            try{p.destroy()}catch(e){}
+            v5GlobalPeer=null;
+            v5ScheduleStart(1500);
+        }
+    });
+}
+
+function v5StartGlobalPresence(){
+    if(!window.Peer)return;
+    if(v5GlobalIsHub || (v5GlobalPeer&&!v5GlobalPeer.destroyed))return;
+    const p=new Peer(V5_GLOBAL_HUB_ID,v5PeerOptions());
+    v5GlobalPeer=p;
+    p.on('open',()=>v5BecomeHub(p));
+    p.on('error',err=>{
+        if(err&&err.type==='unavailable-id'){
+            try{p.destroy()}catch(e){}
+            v5GlobalPeer=null;
+            v5ConnectAsGuest();
+            return;
+        }
+        if(err&&['network','socket-error','server-error','disconnected'].includes(err.type)){
+            try{p.destroy()}catch(e){}
+            v5GlobalPeer=null;
+            v5ScheduleStart(1800);
+        }
+    });
+}
+
+function v5RouteAdminAction(data){
+    if(!data)return false;
+    if(!data.actionId)data.actionId='admin-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+    if(v5GlobalIsHub){
+        v5ApplyGlobalAction(data);
+        v5BroadcastHub(data);
+        return true;
+    }
+    if(v5GlobalConn&&v5GlobalConn.open){
+        try{v5GlobalConn.send(data);v5ApplyGlobalAction(data);return true}catch(e){}
+    }
+    return false;
+}
+
+/* ------------------------------------------------------------
+   4) 全体バフ発動をP2P化
+   ------------------------------------------------------------ */
+const _v5OriginalActivateMutation=activateMutation;
+activateMutation=function(){
+    audioSynth.playClick();
+    const sel=document.getElementById('admin-mutation-type');
+    const timeEl=document.getElementById('admin-mutation-time');
+    const type=(sel&&sel.value==='water')?'water':'thunder';
+    const sec=Math.max(1,Math.min(86400,parseInt(timeEl&&timeEl.value,10)||60));
+    const data={
+        type:'GLOBAL_ADMIN_BUFF',
+        actionId:'buff-'+Date.now()+'-'+Math.random().toString(36).slice(2),
+        mutation:type,
+        startedAt:Date.now(),
+        durationMs:sec*1000,
+        originUserId:String(myUserId||'')
+    };
+    const ok=v5RouteAdminAction(data);
+    if(!ok){
+        /* P2P未接続時だけ、自分の画面には従来どおり反映 */
+        try{_v5OriginalActivateMutation()}catch(e){}
+    }
+    try{updateStatusEffects()}catch(e){}
+};
+window.activateMutation=activateMutation;
+
+/* ------------------------------------------------------------
+   5) 管理者メッセージタブ追加
+   ------------------------------------------------------------ */
+function v5InstallAdminMessageTab(){
+    const tabs=document.querySelector('.admin-tabs');
+    const panel=document.getElementById('admin-panel');
+    if(!tabs||!panel)return;
+    if(!document.getElementById('tab-admin-message')){
+        const tab=document.createElement('div');
+        tab.className='admin-tab';
+        tab.setAttribute('onclick',"switchAdminTab('tab-admin-message', event)");
+        tab.textContent='管理者メッセージ';
+        tabs.appendChild(tab);
+
+        const content=document.createElement('div');
+        content.id='tab-admin-message';
+        content.className='admin-tab-content';
+        content.innerHTML=
+            '<div style="margin-bottom:8px;color:#00eaff;font-weight:bold;">全員に表示するメッセージ</div>'+
+            '<textarea id="admin-global-message" maxlength="500" placeholder="ここにメッセージを入力"></textarea>'+
+            '<div style="margin-top:10px;display:flex;justify-content:center;">'+
+            '<button type="button" onclick="sendAdminMessage()" style="border-color:#00eaff;color:#00eaff;">送信</button>'+
+            '</div>'+
+            '<div style="margin-top:8px;color:#8fa6b3;font-size:.72em;line-height:1.5;">P2P接続中の全員へリアルタイム送信します。</div>';
+        panel.appendChild(content);
+    }
+}
+v5InstallAdminMessageTab();
+
+function sendAdminMessage(){
+    audioSynth.playClick();
+    const el=document.getElementById('admin-global-message');
+    const msg=el?String(el.value||'').trim():'';
+    if(!msg)return;
+    const data={
+        type:'GLOBAL_ADMIN_MESSAGE',
+        actionId:'msg-'+Date.now()+'-'+Math.random().toString(36).slice(2),
+        message:msg.slice(0,500),
+        durationMs:8000,
+        originUserId:String(myUserId||'')
+    };
+    const ok=v5RouteAdminAction(data);
+    if(ok && el)el.value='';
+}
+window.sendAdminMessage=sendAdminMessage;
+
+/* ------------------------------------------------------------
+   6) 設定画面にリアルタイムP2P人数を追加
+   ------------------------------------------------------------ */
+const _v5OriginalShowSettingsMenu=showSettingsMenu;
+showSettingsMenu=function(){
+    _v5OriginalShowSettingsMenu.apply(this,arguments);
+    const userRow=document.getElementById('setting-user-id')?.closest('.settings-row');
+    if(!userRow||document.getElementById('global-online-count'))return;
+    const row=document.createElement('div');
+    row.className='settings-row';
+    row.innerHTML='<span>現在プレイ中の人数（P2P）</span>'+
+        '<span id="global-online-count" class="global-online-chip"><i class="global-online-dot"></i>'+v5GlobalOnlineCount.toLocaleString()+'人</span>';
+    userRow.insertAdjacentElement('afterend',row);
+};
+window.showSettingsMenu=showSettingsMenu;
+
+/* ------------------------------------------------------------
+   7) 初期化
+   ------------------------------------------------------------ */
+v5UpdateOnlineUI(1);
+v5StartGlobalPresence();
+setInterval(()=>{
+    /* ハブ不在時に再取得。存在中なら何もしない */
+    if(!v5GlobalIsHub && (!v5GlobalPeer || v5GlobalPeer.destroyed))v5StartGlobalPresence();
+},5000);
+
+/* ページ離脱前にハートビートを止める */
+window.addEventListener('beforeunload',()=>{
+    try{
+        if(v5GlobalConn&&v5GlobalConn.open)v5GlobalConn.send({type:'GLOBAL_HEARTBEAT',userId:myUserId,leaving:true});
+    }catch(e){}
+    v5SafeDestroyPeer();
+});
+
+/* 外部から使える最小限の状態参照 */
+window.getGlobalOnlineCount=()=>v5GlobalOnlineCount;
+})();
+</script>
+
 </body>
 </html>
